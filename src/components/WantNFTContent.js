@@ -7,10 +7,13 @@ import AddAssetTab from './AddAssetTab/AddAssetTab'
  * need to submit it with form data
  */
 export default function WantNFTContent({ fetchedWantData }) {
+  const { title, wantTokenId, wantNFTAddress, amount } = fetchedWantData;
+
+
   return (
     <>
     <div>WantNFTContent</div>
-    <div> {fetchedWantData}... </div>
+    <div> {title} </div>
     </>
   )
 }

@@ -4,7 +4,7 @@ import CreateSwap from '../components/CreateSwap'
 import styled from 'styled-components';
 
 
-export default function Homepage() {
+export default function Homepage({ switchNetReq }) {
     const [pressedSwap, setPressedSwap] = useState(false);
 
     const handleClick = () => {
@@ -24,7 +24,7 @@ export default function Homepage() {
               </>
              }
             { pressedSwap 
-              ? <CreateSwap/>
+              ? <CreateSwap switchNetReq={switchNetReq}/>
               : <StyledButton onClick={handleClick}> SWAP IT NOW </StyledButton>
             }            
           </StyledElementsWrap>

@@ -1,32 +1,42 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
-import { WalletContext } from '../context/WalletContext'
 // import ButtonPrimary from './ButtonPrimary';
 import MenuButton from './MenuButton';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
+
+import { useAccount, useConnect, useNetwork, chain } from 'wagmi'
+
 
 /**
  * @TODO save account to localhost
  * @TODO display whole address when clicked
  */
 
-export default function Navbar() {
-  const { currentAccount, setCurrentAccount, provider} = useContext(WalletContext);
+export default function Navbar({ switchNetReq, setSwitchNet }) {
+  const { connect, connectors } = useConnect();
+  const { data: currentAccount } = useAccount();
+
   const [ isMenuOpened, setMenuOpened ] = useState(false);
+  
+  const connectAccount = async() => { 
+      if ( currentAccount ) return;
+      connect(connectors[0]); 
+  }  
+
+  const { activeChain, switchNetwork } = useNetwork({
+      chainId: chain.rinkeby.id,
+  });
+
   useEffect(() => {
-    // if (!currentAccount) return
-    // console.log(currentAccount)
+    if (activeChain && activeChain.id !== chain.rinkeby.id) {
+      setSwitchNet(true)
+      switchNetwork && switchNetwork();
 
-  }, [currentAccount])
-
-  const connectAccount = async() => {
-    if (!window.ethereum) return
-    window.ethereum?.request({ method: 'eth_requestAccounts' })
-    .then(res => setCurrentAccount(res[0]) )
-    .catch( (err) => { if (err.code === 4001) window.alert('Please connect to MetaMask.'); } );
-
-}  
+    } else {
+      setSwitchNet(false)
+    }
+  }, [activeChain, switchNetwork] )
 
 
   return (
@@ -37,7 +47,7 @@ export default function Navbar() {
 
       <StyledButtonsWrap>
         { currentAccount 
-        ? <StyledWallet> <p> {currentAccount} </p> </StyledWallet>
+        ? switchNetReq ? ( <StyledWallet> <p> pls switch net</p> </StyledWallet>) : ( <StyledWallet> <p> {currentAccount.address} </p> </StyledWallet>)
         : <StyledButton onClick={connectAccount}> connect wallet </StyledButton>
         }
         <MenuButton setMenuOpened={setMenuOpened} isMenuOpened={isMenuOpened}> menu </MenuButton>

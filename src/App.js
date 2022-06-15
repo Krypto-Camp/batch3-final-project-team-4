@@ -1,18 +1,22 @@
-import { useState } from 'react';
 import './App.css';
 import WalletContextProvider from './context/WalletContext';
 import Router from './Router';
 import styled from 'styled-components';
+import { useMoralis } from "react-moralis";
+import { useEffect } from 'react';
 
 function App() {
-
+  const { authenticate, isAuthenticated, user } = useMoralis();
+  // useEffect(() => {
+  //   authenticate()
+  // }, [])
 
   return (
-    <WalletContextProvider>
+    // <WalletContextProvider>
       <div className="App">
         <Router/>
       </div>
-   </WalletContextProvider>
+  //  </WalletContextProvider>
   );
 }
 

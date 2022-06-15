@@ -6,10 +6,11 @@ import React from 'react'
  * need to submit it with form data
  */
 export default function HaveNFTContent({ fetchedHaveData }) {
+  const { title, haveTokenId, haveNFTAddress } = fetchedHaveData;
   return (
       <>
-    <div>HaveNFTContent</div>
-      <div> {fetchedHaveData} </div>
+       <div>HaveNFTContent</div>
+        <div> {title} </div>
       </>
   )
 }

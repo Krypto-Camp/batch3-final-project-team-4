@@ -4,31 +4,69 @@ import HaveNFTContent from './HaveNFTContent';
 import WantNFTContent from './WantNFTContent';
 import styled from 'styled-components';
 
+import { ethers, BigNumber } from 'ethers';
+import { contractABI, contractAddress } from '../configs/contract';
+import {
+    useAccount,
+    useContractRead,
+    useContractWrite,
+    chain
+} from 'wagmi'
+
 /**
  * @TODO store all inputs in CreateSwapContext
  * 
  */
-export default function CreateSwap() {
-  const [is1stChecked, set1stChecked] = useState(false);
-  const [is2rdChecked, set2rdChecked] = useState(false);
+export default function CreateSwap({ switchNetReq }) {
+  /**
+   *  contract wise
+   */
+  const [fetchedHaveData, setFetchedHaveData] = useState({ title: 'have', haveTokenId:'', haveNFTAddress:'' });
+  const [fetchedWantData, setFetchedWantData] = useState({ title: 'want', wantTokenId:'', wantNFTAddress:'', amount:'' });
+  const [expiredDate, setExpiredDate] = useState('');
+
+  const { data: createContractData, isError: createContractError, isLoading: isContractCreating, write: createTransaction } = useContractWrite(
+    {
+      addressOrName: contractAddress,
+      contractInterface: contractABI,
+    },
+    'createTransaction', 
+    {
+      args: [
+        "0x683deC5cE4Bf562c3eF8167938021e800BD4DD99",
+        "0x8709c25e88db15841ae937f577702e5e389267ca",
+        4,
+        0,
+        false, 
+        1,
+        0
+      ]
+    }
+  )
+
+
+  /**
+   *  app states wise
+   */
   const [isModalOpened, setModalOpened] = useState(false);
   const [ModalContent, setModalContent] = useState(null); 
-  const [fetchedHaveData, setFetchedHaveData] = useState('user selects what has to be traded');
-  const [fetchedWantData, setFetchedWantData] = useState('user selects onchain NFT right here');
 
   const handleAssetClicked = (whichClicked) => {
     setModalOpened(true);
     setModalContent(whichClicked);
   }
-  const handleSubmit = () => {
+
+  const handleSubmit = e => {
+    e.preventDefault();
     console.log("handleSubmit")
+    createTransaction();
   }
   
 
   return (
     <>
       <StyledElementsWrap>
-          <h2> Swap it happen! </h2>
+           { !switchNetReq ? <div> Swap it happen! </div> :  <div> Please switch network. </div> }
           <StyledCardWrap>
             <StyledSwapCard>
               <p>  what you have  </p>
@@ -41,21 +79,12 @@ export default function CreateSwap() {
             </StyledSwapCard>
           </StyledCardWrap>
 
-          <StyledForm onSubmit={handleSubmit}> 
-            <label> any specific address? </label>
-            <input type="text"/>
+          <StyledForm > 
             <label> expiration date </label>
             <input type="date"/>
 
-            <div>
-              <label> Use Legacy Swap Code </label>
-              <input className={`checkbox ${is1stChecked ? "checkbox--active" : ""}`} type="checkbox" checked={is1stChecked} onChange={() => set1stChecked(!is1stChecked)}/>
-            </div>
-            <div>
-            <label> Use Legacy Signature Method </label>
-            <input className={`checkbox ${is2rdChecked ? "checkbox--active" : ""}`} type="checkbox" checked={is2rdChecked} onChange={() => set2rdChecked(!is2rdChecked)}/>
-            </div>
-            <StyledButton> create swap </StyledButton>
+
+            <StyledButton type="submit" onClick={handleSubmit}> create swap </StyledButton>
 
           </StyledForm>
        </StyledElementsWrap>
