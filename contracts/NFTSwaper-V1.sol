@@ -76,23 +76,23 @@ contract NFTSwaper is Pausable, Ownable {
         uint256 _wantToken
     ) public payable whenNotPaused {
         Transaction storage transaction = transactions[_transactionId]; // another method
-        require(_wantNFT == transaction.wantNFT, "Not requested NFT"); // NFT 確認
-        require(_wantToken == transaction.wantToken, "Not requested NFT Id"); // NFT Id 確認
-        require(msg.sender == transaction.receiver, "Not correct receiver"); // 交換者確認
+        require(_wantNFT == transaction.wantNFT, "Not requested NFT"); // NFT check
+        require(_wantToken == transaction.wantToken, "Not requested NFT Id"); // NFT Id check
+        require(msg.sender == transaction.receiver, "Not correct receiver"); // receiver check
         require(
             transaction.myNFT.ownerOf(transaction.myToken) ==
                 transaction.requestor,
             "Exchanged NFT doesn't exist in requestor wallet"
-        ); // 確認欲交換的token未被轉移
+        ); // check requestor's exchanged token exist
         require(
             transaction.wantNFT.ownerOf(transaction.wantToken) ==
                 transaction.receiver,
             "Exchanged NFT doesn't exist in receiver wallet"
-        ); // 確認被交換的token未被轉移
+        ); // check receiver's exchanged token exist
         require(
             transaction.state == uint256(transactionState.Pending),
             "Already confirmed or Revoked"
-        ); // Request 是否已被confirm或revoke
+        ); // check request if already confirmed or revoked
         // require(msg.value >= 0.01 ether); // confirmation swapfee
 
         Exchange(
@@ -117,7 +117,7 @@ contract NFTSwaper is Pausable, Ownable {
         transaction.state = uint256(transactionState.Revoked);
     }
 
-    // 執行NFT交換功能
+    // excute NFT exchanged function
     function Exchange(
         IERC721 myNFT,
         IERC721 wantNFT,
