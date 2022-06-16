@@ -50,7 +50,7 @@ contract NFTSwaper is Pausable, Ownable {
             _myNFT.ownerOf(_myToken) != _wantNFT.ownerOf(_wantToken),
             "Can't swap NFT to the same owner"
         ); //Optional
-        require(msg.value >= 0.01 ether); // creattion swapfee
+        // require(msg.value >= 0.01 ether); // creation swapfee
 
         uint256 Id = transactions.length;
 
@@ -75,49 +75,49 @@ contract NFTSwaper is Pausable, Ownable {
         IERC721 _wantNFT,
         uint256 _wantToken
     ) public payable whenNotPaused {
-        // Transaction storage transaction = transactions[_transactionId]; // another method
+        Transaction storage transaction = transactions[_transactionId]; // another method
+        require(_wantNFT == transaction.wantNFT, "Not requested NFT"); // NFT 確認
+        require(_wantToken == transaction.wantToken, "Not requested NFT Id"); // NFT Id 確認
+        require(msg.sender == transaction.receiver, "Not correct receiver"); // 交換者確認
         require(
-            _wantNFT == transactions[_transactionId].wantNFT,
-            "Not requested NFT"
-        ); //NFT確認
+            transaction.myNFT.ownerOf(transaction.myToken) ==
+                transaction.requestor,
+            "Exchanged NFT doesn't exist in requestor wallet"
+        ); // 確認欲交換的token未被轉移
         require(
-            _wantToken == transactions[_transactionId].wantToken,
-            "Not requested NFT"
-        ); //NFT Id 確認
+            transaction.wantNFT.ownerOf(transaction.wantToken) ==
+                transaction.receiver,
+            "Exchanged NFT doesn't exist in receiver wallet"
+        ); // 確認被交換的token未被轉移
         require(
-            msg.sender == transactions[_transactionId].receiver,
-            "Not correct receiver"
-        ); // 交換者確認
-        require(
-            transactions[_transactionId].state ==
-                uint256(transactionState.Pending),
+            transaction.state == uint256(transactionState.Pending),
             "Already confirmed or Revoked"
-        );
-        require(msg.value >= 0.01 ether); // confirmation swapfee
+        ); // Request 是否已被confirm或revoke
+        // require(msg.value >= 0.01 ether); // confirmation swapfee
 
         Exchange(
-            transactions[_transactionId].myNFT,
-            transactions[_transactionId].wantNFT,
-            transactions[_transactionId].myToken,
-            transactions[_transactionId].wantToken,
-            transactions[_transactionId].requestor,
-            transactions[_transactionId].receiver
+            transaction.myNFT,
+            transaction.wantNFT,
+            transaction.myToken,
+            transaction.wantToken,
+            transaction.requestor,
+            transaction.receiver
         );
 
-        transactions[_transactionId].state = uint256(
-            transactionState.Completed
-        );
+        transaction.state = uint256(transactionState.Completed);
     }
 
     // Revoke confirmation
     function revokeTransaction(uint256 _transactionId) public whenNotPaused {
+        Transaction storage transaction = transactions[_transactionId];
         require(
-            msg.sender == transactions[_transactionId].requestor,
+            msg.sender == transaction.requestor,
             "Need requestor to revoke"
         );
-        transactions[_transactionId].state = uint256(transactionState.Revoked);
+        transaction.state = uint256(transactionState.Revoked);
     }
 
+    // 執行NFT交換功能
     function Exchange(
         IERC721 myNFT,
         IERC721 wantNFT,
@@ -131,7 +131,7 @@ contract NFTSwaper is Pausable, Ownable {
         wantNFT.transferFrom(receiver, requestor, wantToken); //wantNFT owner exchange
     }
 
-    //Pause Contract
+    // Pause Contract
     function pause() public onlyOwner {
         _pause();
     }
