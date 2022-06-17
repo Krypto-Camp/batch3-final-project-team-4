@@ -29,7 +29,10 @@ contract NFTSwaper is Pausable, Ownable {
 
     Transaction[] public transactions;
 
-    // Approve Token
+    // Transactions of users
+    mapping(address => uint256[]) public usersTransactions;
+
+    // Approve Token (fail)
     function approveToken(IERC721 NFT) public {
         NFT.setApprovalForAll(address(this), true);
     }
@@ -66,6 +69,10 @@ contract NFTSwaper is Pausable, Ownable {
                 state: uint256(transactionState.Pending)
             })
         );
+
+        // Add transactions of users
+        usersTransactions[msg.sender].push(Id);
+        usersTransactions[_receiver].push(Id);
     }
 
     // Confirm transaction
@@ -117,7 +124,7 @@ contract NFTSwaper is Pausable, Ownable {
         transaction.state = uint256(transactionState.Revoked);
     }
 
-    // excute NFT exchanged function
+    // Excute NFT exchanged function
     function Exchange(
         IERC721 myNFT,
         IERC721 wantNFT,
@@ -129,6 +136,49 @@ contract NFTSwaper is Pausable, Ownable {
         // require(msg.value > 0.01 ether); // swapfee
         myNFT.transferFrom(requestor, receiver, myToken); //myNFT owner exchange
         wantNFT.transferFrom(receiver, requestor, wantToken); //wantNFT owner exchange
+    }
+
+    // Get transactions of users
+    function getUsersTransactions(address usersAddress)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return usersTransactions[usersAddress];
+    }
+
+    // Get all transactions count
+    function getAllTransactionsCount() public view returns (uint256) {
+        return transactions.length;
+    }
+
+    // Get transactions data
+    function getTransactionsData(uint256 _transactionId)
+        public
+        view
+        returns (
+            uint256 transactionId,
+            address requestor,
+            address receiver,
+            IERC721 myNFT,
+            IERC721 wantNFT,
+            uint256 myToken,
+            uint256 wantToken,
+            uint256 state
+        )
+    {
+        Transaction storage transaction = transactions[_transactionId];
+
+        return (
+            transaction.transactionId,
+            transaction.requestor,
+            transaction.receiver,
+            transaction.myNFT,
+            transaction.wantNFT,
+            transaction.myToken,
+            transaction.wantToken,
+            transaction.state
+        );
     }
 
     // Pause Contract
