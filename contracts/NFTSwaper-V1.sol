@@ -25,6 +25,7 @@ contract NFTSwaper is Pausable, Ownable {
         uint256 myToken;
         uint256 wantToken;
         uint256 state;
+        uint256 dueDate; // add dueDate
     }
 
     Transaction[] public transactions;
@@ -32,10 +33,10 @@ contract NFTSwaper is Pausable, Ownable {
     // Transactions of users
     mapping(address => uint256[]) public usersTransactions;
 
-    // Approve Token (fail)
+    /* Approve Token (fail)
     function approveToken(IERC721 NFT) public {
         NFT.setApprovalForAll(address(this), true);
-    }
+    } */
 
     // Request creation
     function createTransaction(
@@ -43,7 +44,8 @@ contract NFTSwaper is Pausable, Ownable {
         IERC721 _myNFT,
         IERC721 _wantNFT,
         uint256 _myToken,
-        uint256 _wantToken
+        uint256 _wantToken,
+        uint256 _dueDate
     ) public payable whenNotPaused {
         require(
             _receiver != msg.sender,
@@ -66,7 +68,8 @@ contract NFTSwaper is Pausable, Ownable {
                 wantNFT: _wantNFT,
                 myToken: _myToken,
                 wantToken: _wantToken,
-                state: uint256(transactionState.Pending)
+                state: uint256(transactionState.Pending),
+                dueDate: _dueDate
             })
         );
 
@@ -83,6 +86,10 @@ contract NFTSwaper is Pausable, Ownable {
         uint256 _wantToken
     ) public payable whenNotPaused {
         Transaction storage transaction = transactions[_transactionId]; // another method
+        require(
+            block.timestamp < transaction.dueDate,
+            "Request already expired"
+        ); // dueDate check
         require(_wantNFT == transaction.wantNFT, "Not requested NFT"); // NFT check
         require(_wantToken == transaction.wantToken, "Not requested NFT Id"); // NFT Id check
         require(msg.sender == transaction.receiver, "Not correct receiver"); // receiver check
@@ -100,7 +107,8 @@ contract NFTSwaper is Pausable, Ownable {
             transaction.state == uint256(transactionState.Pending),
             "Already confirmed or Revoked"
         ); // check request if already confirmed or revoked
-        // require(msg.value >= 0.01 ether); // confirmation swapfee
+
+        /* require(msg.value >= 0.01 ether); // confirmation swapfee */
 
         Exchange(
             transaction.myNFT,
@@ -133,7 +141,7 @@ contract NFTSwaper is Pausable, Ownable {
         address requestor,
         address receiver
     ) public payable whenNotPaused {
-        // require(msg.value > 0.01 ether); // swapfee
+        /* require(msg.value > 0.01 ether); // swapfee */
         myNFT.transferFrom(requestor, receiver, myToken); //myNFT owner exchange
         wantNFT.transferFrom(receiver, requestor, wantToken); //wantNFT owner exchange
     }
@@ -164,7 +172,8 @@ contract NFTSwaper is Pausable, Ownable {
             IERC721 wantNFT,
             uint256 myToken,
             uint256 wantToken,
-            uint256 state
+            uint256 state,
+            uint256 dueDate
         )
     {
         Transaction storage transaction = transactions[_transactionId];
@@ -177,7 +186,8 @@ contract NFTSwaper is Pausable, Ownable {
             transaction.wantNFT,
             transaction.myToken,
             transaction.wantToken,
-            transaction.state
+            transaction.state,
+            transaction.dueDate
         );
     }
 
