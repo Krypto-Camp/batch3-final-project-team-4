@@ -68,9 +68,11 @@ export default function ViewSwaps() {
     const approve_res = nft_contract.approve(contractAddress, allSwaps[transacId][6].toNumber()  )
   }
   const handleConfirm = e => {
-    e.preventDefault()
+    // e.preventDefault()
     const transacId = e.target.id
-    confirmSwap(transacId, allSwaps[transacId][4], allSwaps[transacId][0].toNumber()  ).catch( e => console.log(e) )
+    // console.log(transacId)
+    // console.log(allSwaps[transacId] )
+    confirmSwap(allSwaps[transacId][0], allSwaps[transacId][4], allSwaps[transacId][6].toNumber()  ).catch( e => console.log(e) )
   }
 
   const parseStatus = (status) => {
@@ -121,7 +123,7 @@ export default function ViewSwaps() {
           <StyledCorner> 
             status: {parseStatus(swap[7].toNumber()) } 
             { swap[7].toNumber() === 0 && <button onClick={handleApprove} id={i}> approve </button> }
-            { swap[7].toNumber() === 0 && <button onClick={() => handleConfirm(swap[4], swap[0].toNumber())} id={i}> confirm </button> }
+            { swap[7].toNumber() === 0 && <button onClick={ handleConfirm } id={i}> confirm </button> }
           
           </StyledCorner>
           {/* <StyledCorner> expiredDate: {swap[9].toNumber()} </StyledCorner> */}
