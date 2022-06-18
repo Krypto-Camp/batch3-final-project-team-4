@@ -65,7 +65,7 @@ export default function ViewSwaps() {
     // console.log(allSwaps[transacId] )
     // approve nft in wallet first 
     const nft_contract = new ethers.Contract(allSwaps[transacId][4], erc721ContractABI, signer);
-    const approve_res = nft_contract.approve(contractAddress, allSwaps[transacId][0].toNumber()  )
+    const approve_res = nft_contract.approve(contractAddress, allSwaps[transacId][6].toNumber()  )
   }
   const handleConfirm = e => {
     e.preventDefault()
