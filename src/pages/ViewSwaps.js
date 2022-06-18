@@ -44,24 +44,31 @@ export default function ViewSwaps() {
     }, [swapsCount])
     
     useEffect(() => {
-      console.log(allSwaps )
+      // console.log(allSwaps )
     }, [allSwaps])
 
 
   /**
    * @TODO pop up modal for detail and ask comfirm
    * @TODO TEST THIS ASYNC
+   * @TODO OR CHECK APPROVED BEFORE CONFIRM
    */
   const confirmSwap = async(id, wantNFT, wantNFTtokenID ) => {
-    // approve nft in wallet first 
-    const nft_contract = new ethers.Contract(wantNFT, erc721ContractABI, signer);
-    const approve_res = await nft_contract.approve(contractAddress, wantNFTtokenID)
     // sign contract
     const confirm_res = await contract?.confirmTransaction(id, wantNFT, wantNFTtokenID )
     setConfirmSwapRes(confirm_res)
   }
 
+  const handleApprove = (e ) => {
+    e.preventDefault()
+    const transacId = e.target.id
+    // console.log(allSwaps[transacId] )
+    // approve nft in wallet first 
+    const nft_contract = new ethers.Contract(allSwaps[transacId][4], erc721ContractABI, signer);
+    const approve_res = nft_contract.approve(contractAddress, allSwaps[transacId][0].toNumber()  )
+  }
   const handleConfirm = e => {
+    e.preventDefault()
     const transacId = e.target.id
     confirmSwap(transacId, allSwaps[transacId][4], allSwaps[transacId][0].toNumber()  ).catch( e => console.log(e) )
   }
@@ -113,7 +120,8 @@ export default function ViewSwaps() {
 
           <StyledCorner> 
             status: {parseStatus(swap[7].toNumber()) } 
-            { swap[7].toNumber() === 0 && <button onClick={handleConfirm} id={i}> confirm </button> }
+            { swap[7].toNumber() === 0 && <button onClick={handleApprove} id={i}> approve </button> }
+            { swap[7].toNumber() === 0 && <button onClick={() => handleConfirm(swap[4], swap[0].toNumber())} id={i}> confirm </button> }
           
           </StyledCorner>
           {/* <StyledCorner> expiredDate: {swap[9].toNumber()} </StyledCorner> */}

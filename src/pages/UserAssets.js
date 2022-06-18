@@ -27,6 +27,7 @@ export default function UserAssets() {
   };
 
   useEffect(() => {
+// console.log(Web3Api)
       fetchNFTs();
   }, [Web3Api]);
 
