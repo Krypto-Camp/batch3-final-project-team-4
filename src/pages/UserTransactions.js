@@ -1,98 +1,117 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components';
 
-import { contractABI, contractAddress } from '../configs/contract';
-import { useAccount, useContractRead } from 'wagmi'
+import { ethers } from 'ethers';
+import { contractABI, contractAddress, erc721ContractABI } from '../configs/contract';
+import { useSigner, useContract, useAccount } from 'wagmi'
 
 
 export default function UserTransactions() {
   const { data: currentAccount } = useAccount();
-  const [ userTransactinList , setUserTransactinList ] = useState([]);
+  const [ userTransactionIDList , setUserTransactionIDList ] = useState(null);
+  const [ parsedTransactionIDList , setParsedTransactionIDList ] = useState(null);
+  const [ userTransactionDataList , setUserTransactinDataList ] = useState([]);
+  const [ confirmSwapRes, setConfirmSwapRes ] = useState()
 
-  const { data: ownerTransactionData, isOwnerTransactionError, isOwnerTransactionLoading }  = useContractRead(
-    {
-      addressOrName: contractAddress,
-      contractInterface: contractABI,
-    },
-    'getOwnerTransactions',
-    { args: ["0x428Ed3C462f561cc63c84b82D1846751FBef3028"] },
-    // { watch: true },
-  )
-  // console.log(ownerTransactionData)
+  const { data: wallet } = useAccount() 
+  const { data: signer } = useSigner()
+  const contract = useContract({
+    addressOrName: contractAddress,
+    contractInterface: contractABI,
+    signerOrProvider: signer
+  })
 
-  /**
-   * @Fix 無法遍歷
-   */
-  // ownerTransactionData.map( addr => console.log(addr.toNumber() ) )
+  const getUserSwapIDs = async() => {
+    const res = await contract?.getUsersTransactions(wallet.address)
+    setUserTransactionIDList(res)
+  } 
 
-  const { data: transactionsData0, isTransactions0Error, isTransactions0Loading }  = useContractRead(
-    {
-      addressOrName: contractAddress,
-      contractInterface: contractABI,
-    },
-    'getTransaction',
-    { args: [0] },
-    // { watch: true },
-  )
-  const { data: transactionsData1, isTransactions1Error, isTransactions1Loading }  = useContractRead(
-    {
-      addressOrName: contractAddress,
-      contractInterface: contractABI,
-    },
-    'getTransaction',
-    { args: [1] },
-    // { watch: true },
-  )
+  const getUserSwapHistory = async(parsedTransactionIDList) => {
+    if(!parsedTransactionIDList) return
+
+    let all_promise = []
+    for (let i=0; i<parsedTransactionIDList.length; i++) { 
+      all_promise.push( contract?.getTransactionsData(parsedTransactionIDList[i]) )
+    }
+    Promise.all(all_promise).then( swap => setUserTransactinDataList(swap))
+    // const res = await contract?.getTransactionsData(0)
+    // setAllSwaps(res)
+  }
+
+  useEffect(() => {
+    if (!contract) return
+    getUserSwapIDs().catch( e => console.log(e) )
+  }, [contract])
+  
+  useEffect(() => {
+    if(!userTransactionIDList ) return
+    const parsedIDs = userTransactionIDList?.map( data => data.toNumber() )
+    setParsedTransactionIDList(parsedIDs)
+  }, [userTransactionIDList])
+
+  useEffect(() => {
+    getUserSwapHistory(parsedTransactionIDList).catch( e => console.log(e) )
+  }, [parsedTransactionIDList])
+
+  const confirmSwap = async(id, wantNFT, wantNFTtokenID ) => {
+    // approve nft in wallet first 
+    const nft_contract = new ethers.Contract(wantNFT, erc721ContractABI, signer);
+    const approve_res = await nft_contract.approve(contractAddress, wantNFTtokenID)
+    // sign contract
+    const confirm_res = await contract?.confirmTransaction(id, wantNFT, wantNFTtokenID )
+    setConfirmSwapRes(confirm_res)
+  }
 
 
+  const handleConfirm = e => {
+    const transacId = e.target.id
+    confirmSwap(transacId, userTransactionDataList[transacId][4], userTransactionDataList[transacId][0].toNumber()  ).catch( e => console.log(e) )
+  }
 
-// console.log(transactionsData2)
+  const parseStatus = (status) => {
+    switch (status){
+      case 0:
+      return 'pending'
+      case 1:
+      return 'revoked'
+      case 2:
+      return 'completed'
+      default:
+        return ''
+    }
+  }
 
 
   return (
     <>
     <div>User Transactions History</div>
-    
-    <StyledCardWrap>
-        <StyledUpperContent>
-          <StyledCol>
-            <div> have: {transactionsData0[3]} </div>
-            <div> tokenId: {transactionsData0[4].toNumber()} </div>
-            <div> initiator: {transactionsData0[1]} </div>
-          </StyledCol>
+    {userTransactionDataList?.length ? 
+      userTransactionDataList?.map( (swap, i) => 
+        <StyledCardWrap key={i}>
+          <StyledUpperContent>
+            <StyledCol>
+              <div> transcId: {swap[0].toNumber()} </div>
+              <div> have: {swap[3]} </div>
+              <div> tokenId: {swap[5].toNumber()} </div>
+              <div> initiator: {swap[1]} </div>
+            </StyledCol>
 
-          <StyledCol>
-            <div> want: {transactionsData0[3]} </div>
-            <div> tokenId: {transactionsData0[0].toNumber()} </div>
-            <div> amount: {transactionsData0[8].toNumber()} </div>
-            <div> target wallet: {transactionsData0[2]} </div>
-          </StyledCol>
-        </StyledUpperContent>
+            <StyledCol>
+              <div> want: {swap[4]} </div>
+              <div> tokenId: {swap[6].toNumber()} </div>
+              <div> target wallet: {swap[2]} </div>
+            </StyledCol>
+          </StyledUpperContent>
 
-        <StyledCorner> status: {transactionsData0[6].toNumber() ? 'completed' : 'pending'} </StyledCorner>
-        <StyledCorner> expiredDate: {transactionsData0[9].toNumber()} </StyledCorner>
-    </StyledCardWrap>
+          <StyledCorner> 
+            status: {parseStatus(swap[7].toNumber()) }         
+            { swap[7].toNumber() === 0 && <button onClick={handleConfirm} id={i}> confirm </button> }
 
-    <StyledCardWrap>
-        <StyledUpperContent>
-          <StyledCol>
-            <div> have: {transactionsData1[3]} </div>
-            <div> tokenId: {transactionsData1[4].toNumber()} </div>
-            <div> initiator: {transactionsData1[1]} </div>
-          </StyledCol>
-
-          <StyledCol>
-            <div> want: {transactionsData1[3]} </div>
-            <div> tokenId: {transactionsData1[0].toNumber()} </div>
-            <div> amount: {transactionsData1[8].toNumber()} </div>
-            <div> target wallet: {transactionsData1[2]} </div>
-          </StyledCol>
-        </StyledUpperContent>
-
-        <StyledCorner> status: {transactionsData1[6].toNumber() ? 'completed' : 'pending'} </StyledCorner>
-        <StyledCorner> expiredDate: {transactionsData1[9].toNumber()} </StyledCorner>
-    </StyledCardWrap>
-    
+          </StyledCorner>
+          {/* <StyledCorner> expiredDate: {swap[9].toNumber()} </StyledCorner> */}
+        </StyledCardWrap> 
+      ) : 'loading'
+    }
     </>
   )
 }

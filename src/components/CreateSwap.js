@@ -1,17 +1,12 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ModalAddAsset from './ModalAddAsset';
 import HaveNFTContent from './HaveNFTContent';
 import WantNFTContent from './WantNFTContent';
 import styled from 'styled-components';
 
-import { ethers, BigNumber } from 'ethers';
-import { contractABI, contractAddress } from '../configs/contract';
-import {
-    useAccount,
-    useContractRead,
-    useContractWrite,
-    chain
-} from 'wagmi'
+import { ethers } from 'ethers';
+import { contractABI, contractAddress, erc721ContractABI } from '../configs/contract';
+import { useSigner, useContract, useContractWrite } from 'wagmi'
 
 /**
  * @TODO store all inputs in CreateSwapContext
@@ -21,11 +16,18 @@ export default function CreateSwap({ switchNetReq }) {
   /**
    *  contract wise
    */
-  const [fetchedHaveData, setFetchedHaveData] = useState({ title: 'have', haveTokenId:'', haveNFTAddress:'' });
-  const [fetchedWantData, setFetchedWantData] = useState({ title: 'want', wantTokenId:'', wantNFTAddress:'', amount:'' });
+  const [fetchedHaveData, setFetchedHaveData] = useState({ haveTokenId:'101', haveNFTAddress:'0xfeD2cdE438AB93f6CbcceCfD5BE88Fe48a7f664D' });
+  const [fetchedWantData, setFetchedWantData] = useState({ wantTokenId:'28', wantNFTAddress:'0x687D9F7Cdee1f1BA202F0447D81B3B4fba56fe4F', receiver: '0x0F1CD12F75508aa0420dA9cD9798D9cD93627bb3', amount:'' });
   const [expiredDate, setExpiredDate] = useState('');
 
-  const { data: createContractData, isError: createContractError, isLoading: isContractCreating, write: createTransaction } = useContractWrite(
+  const { data: signer } = useSigner()
+  const contract = useContract({
+    addressOrName: contractAddress,
+    contractInterface: contractABI,
+    signerOrProvider: signer
+  })
+    
+  const { data: createContractData, isError: createContractError, isLoading: isContractCreating, write: Transac } = useContractWrite(
     {
       addressOrName: contractAddress,
       contractInterface: contractABI,
@@ -35,15 +37,26 @@ export default function CreateSwap({ switchNetReq }) {
       args: [
         "0x683deC5cE4Bf562c3eF8167938021e800BD4DD99",
         "0x8709c25e88db15841ae937f577702e5e389267ca",
+        "0xfeD2cdE438AB93f6CbcceCfD5BE88Fe48a7f664D",
         4,
-        0,
-        false, 
-        1,
-        0
+        28,
       ]
     }
   )
 
+  const createTransac = async(params) => {
+    // format input params
+    let paramArray = [params.receiver, params.haveNFTAddress, params.wantNFTAddress, params.haveTokenId, params.wantTokenId  ]
+    // approve myNFT
+    const nft_contract = new ethers.Contract(params.haveNFTAddress, erc721ContractABI, signer);
+    const approve_res = await nft_contract.approve(contractAddress, params.haveTokenId)
+    // console.log(approve_res)
+    
+    createTransac()
+    const confirm_res = await contract?.createTransaction(paramArray)
+    // console.log(paramArray)
+    // Transac()
+  }
 
   /**
    *  app states wise
@@ -58,8 +71,8 @@ export default function CreateSwap({ switchNetReq }) {
 
   const handleSubmit = e => {
     e.preventDefault();
-    console.log("handleSubmit")
-    createTransaction();
+    createTransac({ ...fetchedHaveData, ...fetchedWantData });
+    
   }
   
 
@@ -70,22 +83,27 @@ export default function CreateSwap({ switchNetReq }) {
           <StyledCardWrap>
             <StyledSwapCard>
               <p>  what you have  </p>
-              <StyledButton onClick={ () => handleAssetClicked(<HaveNFTContent fetchedHaveData={fetchedHaveData}/>)}> add assets</StyledButton>
+              <StyledButton 
+                onClick={ () => handleAssetClicked(<HaveNFTContent fetchedHaveData={fetchedHaveData} setFetchedHaveData={setFetchedHaveData}/>)}
+              > 
+                add assets
+              </StyledButton>
             </StyledSwapCard>
 
             <StyledSwapCard> 
               <p> and you're looking for </p>
-              <StyledButton onClick={ () => handleAssetClicked(<WantNFTContent fetchedWantData={fetchedWantData}/> )}> add assets</StyledButton>
+              <StyledButton 
+                onClick={ () => handleAssetClicked(<WantNFTContent fetchedWantData={fetchedWantData} setFetchedWantData={setFetchedWantData}/>)}
+              > 
+                add assets
+              </StyledButton>
             </StyledSwapCard>
           </StyledCardWrap>
 
           <StyledForm > 
             <label> expiration date </label>
             <input type="date"/>
-
-
             <StyledButton type="submit" onClick={handleSubmit}> create swap </StyledButton>
-
           </StyledForm>
        </StyledElementsWrap>
 
@@ -139,22 +157,7 @@ const StyledForm = styled.div`
   align-items: center;
   border-radius: 5px;
   border-color: transparent;
-
 `
-const StyledInput = styled.div`
-  width: 500px;
-  max-width: 90vw;
-  height: 30vh;
-  margin: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  border-radius: 5px;
-  border-color: transparent;
-
-`
-
 
 
 const StyledButton = styled.button`
@@ -176,3 +179,4 @@ const StyledButton = styled.button`
   font-size: 1.2rem;
 
 `
+

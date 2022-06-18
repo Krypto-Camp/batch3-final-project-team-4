@@ -1,64 +1,83 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components';
 
-import { contractABI, contractAddress } from '../configs/contract';
-import {
-    useAccount,
-    useContractRead,
-    useContractWrite,
-    chain
-} from 'wagmi'
+import { ethers } from 'ethers';
+import { contractABI, contractAddress, erc721ContractABI } from '../configs/contract';
+import { useSigner, useContract, useAccount } from 'wagmi'
 
 
 export default function ViewSwaps() {
-  const [ filter, setFilter ] = useState('expiredDate'); // staus
+  const [ filter, setFilter ] = useState('expiredDate') // status
+  const [ swapsCount, setSwapsCount ] = useState(null) 
+  const [ allSwaps, setAllSwaps ] = useState([]) 
+  const [ confirmSwapRes, setConfirmSwapRes ] = useState()
+  
+  const { data: wallet } = useAccount() 
+  const { data: signer } = useSigner()
+  const contract = useContract({
+    addressOrName: contractAddress,
+    contractInterface: contractABI,
+    signerOrProvider: signer
+  })
+    
+    const getSwapsCount = async() => {
+      const res = await contract?.getAllTransactionsCount()
+      setSwapsCount(res)
+    }
+    const getAllSwaps = async() => {
+      let all_promise = []
+      for (let i=0; i<swapsCount; i++) { 
+        all_promise.push( contract?.getTransactionsData(i) )
+      }
+      Promise.all(all_promise).then( swap => setAllSwaps(swap))
+      // const res = await contract?.getTransactionsData(0)
+      // setAllSwaps(res)
+    }
 
+    useEffect(() => {
+      if (!contract) return
+      getSwapsCount().catch( e => console.log(e) )
+    }, [contract])
 
-  const { data: transactions0, isTransactions0Error, isTransactions0Loading }  = useContractRead(
-    {
-      addressOrName: contractAddress,
-      contractInterface: contractABI,
-    },
-    'transactions',
-    { args: [0] },
-    // { watch: true },
-  )
-  const { data: transactions1, isTransactions1Error, isTransactions1Loading }  = useContractRead(
-    {
-      addressOrName: contractAddress,
-      contractInterface: contractABI,
-    },
-    'transactions',
-    { args: [1] },
-    // { watch: true },
-  )
+    useEffect(() => {
+      getAllSwaps().catch( e => console.log(e) )
+    }, [swapsCount])
+    
+    useEffect(() => {
+      console.log(allSwaps )
+    }, [allSwaps])
 
-  const { data: transactions2, isTransactions2Error, isTransactions2Loading }  = useContractRead(
-    {
-      addressOrName: contractAddress,
-      contractInterface: contractABI,
-    },
-    'transactions',
-    { args: [2] },
-    // { watch: true },
-  )
-
-  // console.log(transactions2.)
-  // console.log(transactions2)
 
   /**
-   * pop up modal for detail and ask comfirm
-   * confirm transc button 
-   * 
+   * @TODO pop up modal for detail and ask comfirm
+   * @TODO TEST THIS ASYNC
    */
-  // const { data: confirmData, isError: confirmError, isLoading: isConfirming, write: confirmTransaction } = useContractWrite(
-  //   {
-  //     addressOrName: contractAddress,
-  //     contractInterface: contractABI,
-  //   },
-  //   'mint'
-  // )
+  const confirmSwap = async(id, wantNFT, wantNFTtokenID ) => {
+    // approve nft in wallet first 
+    const nft_contract = new ethers.Contract(wantNFT, erc721ContractABI, signer);
+    const approve_res = await nft_contract.approve(contractAddress, wantNFTtokenID)
+    // sign contract
+    const confirm_res = await contract?.confirmTransaction(id, wantNFT, wantNFTtokenID )
+    setConfirmSwapRes(confirm_res)
+  }
 
+  const handleConfirm = e => {
+    const transacId = e.target.id
+    confirmSwap(transacId, allSwaps[transacId][4], allSwaps[transacId][0].toNumber()  ).catch( e => console.log(e) )
+  }
+
+  const parseStatus = (status) => {
+    switch (status){
+      case 0:
+      return 'pending'
+      case 1:
+      return 'revoked'
+      case 2:
+      return 'completed'
+      default:
+        return ''
+    }
+  }
 
   return (
     <StyledAllswapsContainer>
@@ -74,77 +93,34 @@ export default function ViewSwaps() {
         </select>
       </StyledSearch>
 
-      <StyledCardWrap>
-        <StyledUpperContent>
-          <StyledCol>
-            <div> have: {transactions0[3]} </div>
-            <div> tokenId: {transactions0[4].toNumber()} </div>
-            <div> initiator: {transactions0[1]} </div>
-          </StyledCol>
+      {allSwaps.length ? 
+      allSwaps.map( (swap, i) => 
+        <StyledCardWrap key={i}>
+          <StyledUpperContent>
+            <StyledCol>
+              <div> transcId: {swap[0].toNumber()} </div>
+              <div> have: {swap[3]} </div>
+              <div> tokenId: {swap[5].toNumber()} </div>
+              <div> initiator: {swap[1]} </div>
+            </StyledCol>
 
-          <StyledCol>
-            <div> want: {transactions0[3]} </div>
-            <div> tokenId: {transactions0[0].toNumber()} </div>
-            <div> amount: {transactions0[8].toNumber()} </div>
-            <div> target wallet: {transactions0[2]} </div>
-          </StyledCol>
-        </StyledUpperContent>
+            <StyledCol>
+              <div> want: {swap[4]} </div>
+              <div> tokenId: {swap[6].toNumber()} </div>
+              <div> target wallet: {swap[2]} </div>
+            </StyledCol>
+          </StyledUpperContent>
 
-        <StyledCorner> status: {transactions0[6].toNumber() ? 'completed' : 'pending'} </StyledCorner>
-        <StyledCorner> expiredDate: {transactions0[9].toNumber()} </StyledCorner>
-      </StyledCardWrap>
+          <StyledCorner> 
+            status: {parseStatus(swap[7].toNumber()) } 
+            { swap[7].toNumber() === 0 && <button onClick={handleConfirm} id={i}> confirm </button> }
+          
+          </StyledCorner>
+          {/* <StyledCorner> expiredDate: {swap[9].toNumber()} </StyledCorner> */}
+        </StyledCardWrap> 
+      ) : 'loading'
+      }
 
-      <StyledCardWrap>
-        <StyledUpperContent>
-          <StyledCol>
-            <div> have: {transactions1[3]} </div>
-            <div> tokenId: {transactions1[4].toNumber()} </div>
-            <div> initiator: {transactions1[1]} </div>
-          </StyledCol>
-
-          <StyledCol>
-            <div> want: {transactions1[3]} </div>
-            <div> tokenId: {transactions1[0].toNumber()} </div>
-            <div> amount: {transactions1[8].toNumber()} </div>
-            <div> target wallet: {transactions0[2]} </div>
-          </StyledCol>
-        </StyledUpperContent>
-
-        <StyledCorner> status: {transactions1[6].toNumber() ? 'completed' : 'pending'} </StyledCorner>
-        <StyledCorner> expiredDate: {transactions1[9].toNumber()} </StyledCorner>
-      </StyledCardWrap>
-
-      <StyledCardWrap>
-        <StyledUpperContent>
-          <StyledCol>
-            <div> have: {transactions2[3]} </div>
-            <div> tokenId: {transactions2[4].toNumber()} </div>
-            <div> initiator: {transactions2[1]} </div>
-          </StyledCol>
-
-          <StyledCol>
-            <div> want: {transactions2[3]} </div>
-            <div> tokenId: {transactions2[0].toNumber()} </div>
-            <div> amount: {transactions2[8].toNumber()} </div>
-            <div> target wallet: {transactions0[2]} </div>
-          </StyledCol>
-        </StyledUpperContent>
-
-        <StyledCorner> status: {transactions2[6].toNumber() ? 'completed' : 'pending'} </StyledCorner>
-        <StyledCorner> expiredDate: {transactions2[9].toNumber()} </StyledCorner>
-      </StyledCardWrap>
-
-
-
-      {/* <div> tokenId: {transactions.haveTokenId} </div>
-      <div> initiator: {transactions.initiator} </div>
-
-      <div> want: {transactions.contractAddress} </div>
-      <div> tokenId: {transactions.wantTokenId} </div>
-      <div> amount: {transactions.amount} </div>
-      
-      <div> status: {transactions.state ? 'completed' : 'pending'} </div>
-      <div> status: {transactions.expiredDate} </div> */}
 
     </StyledAllswapsContainer>
   )
@@ -160,7 +136,6 @@ const StyledAllswapsContainer = styled.div`
 const StyledSearch = styled.div`
   width: 400px;
 `
-
 
 const StyledCardWrap = styled.div`
   width: auto;
