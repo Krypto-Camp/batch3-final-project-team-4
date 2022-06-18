@@ -48,13 +48,14 @@ export default function CreateSwap({ switchNetReq }) {
     // format input params
     let paramArray = [params.receiver, params.haveNFTAddress, params.wantNFTAddress, params.haveTokenId, params.wantTokenId  ]
     // approve myNFT
-    const nft_contract = new ethers.Contract(params.haveNFTAddress, erc721ContractABI, signer);
-    const approve_res = await nft_contract.approve(contractAddress, params.haveTokenId)
+    // const nft_contract = new ethers.Contract(params.haveNFTAddress, erc721ContractABI, signer);
+    // const approve_res = await nft_contract.approve(contractAddress, params.haveTokenId)
     // console.log(approve_res)
     
-    createTransac()
-    const confirm_res = await contract?.createTransaction(paramArray)
-    // console.log(paramArray)
+    // createTransac()
+    console.log(paramArray)
+    const confirm_res = await contract?.createTransaction(...paramArray)
+    console.log(confirm_res)
     // Transac()
   }
 

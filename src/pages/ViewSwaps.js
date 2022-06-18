@@ -127,6 +127,7 @@ export default function ViewSwaps() {
 }
 
 const StyledAllswapsContainer = styled.div`
+
   width: auto;
   display: flex;
   flex-direction: column;
