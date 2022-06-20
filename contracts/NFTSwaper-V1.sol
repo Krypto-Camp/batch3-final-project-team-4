@@ -8,6 +8,16 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
 contract NFTSwaper is Pausable, Ownable {
+    function Pay() public payable {}
+
+    function Take(uint256 amount) public onlyOwner {
+        payable(msg.sender).transfer(amount);
+    }
+
+    function Balance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
     // Request state
     enum transactionState {
         Pending, //0
@@ -26,6 +36,8 @@ contract NFTSwaper is Pausable, Ownable {
         uint256 wantToken;
         uint256 state;
         uint256 dueDate; // add dueDate
+        uint256 myETH;
+        uint256 wantETH;
     }
 
     Transaction[] public transactions;
@@ -45,7 +57,9 @@ contract NFTSwaper is Pausable, Ownable {
         IERC721 _wantNFT,
         uint256 _myToken,
         uint256 _wantToken,
-        uint256 _dueDate
+        uint256 _dueDate,
+        uint256 _myETH,
+        uint256 _wantETH
     ) public payable whenNotPaused {
         require(
             _receiver != msg.sender,
@@ -54,8 +68,20 @@ contract NFTSwaper is Pausable, Ownable {
         require(
             _myNFT.ownerOf(_myToken) != _wantNFT.ownerOf(_wantToken),
             "Can't swap NFT to the same owner"
-        ); //Optional
-        // require(msg.value >= 0.01 ether); // creation swapfee
+        );
+        require(
+            _myNFT.ownerOf(_myToken) == msg.sender,
+            "Owner of this token is not you"
+        ); // check owner of the token
+        require(
+            _wantNFT.ownerOf(_wantToken) == _receiver,
+            "Owner of wanted token is not receiver"
+        ); // check owner of the wanted token
+        require(
+            address(msg.sender).balance >= _myETH,
+            "Not enough ETH in your wallet"
+        ); // check ETH amount in requestor's wallet
+        /* require(msg.value >= 0.01 ether); // creation swapfee */
 
         uint256 Id = transactions.length;
 
@@ -69,7 +95,9 @@ contract NFTSwaper is Pausable, Ownable {
                 myToken: _myToken,
                 wantToken: _wantToken,
                 state: uint256(transactionState.Pending),
-                dueDate: _dueDate
+                dueDate: _dueDate,
+                myETH: _myETH,
+                wantETH: _wantETH
             })
         );
 
@@ -107,6 +135,10 @@ contract NFTSwaper is Pausable, Ownable {
             transaction.state == uint256(transactionState.Pending),
             "Already confirmed or Revoked"
         ); // check request if already confirmed or revoked
+        require(
+            address(msg.sender).balance >= transaction.wantETH,
+            "Not enough ETH in your wallet"
+        ); // check ETH amount in receiver's wallet
 
         /* require(msg.value >= 0.01 ether); // confirmation swapfee */
 
@@ -119,6 +151,9 @@ contract NFTSwaper is Pausable, Ownable {
             transaction.receiver
         );
 
+        payable(transaction.requestor).transfer(transaction.wantETH); // transfer ETH to requesotr
+        payable(transaction.receiver).transfer(transaction.myETH); // transfer ETH to receiver
+
         transaction.state = uint256(transactionState.Completed);
     }
 
@@ -129,6 +164,7 @@ contract NFTSwaper is Pausable, Ownable {
             msg.sender == transaction.requestor,
             "Need requestor to revoke"
         );
+        payable(transaction.requestor).transfer(transaction.myETH);
         transaction.state = uint256(transactionState.Revoked);
     }
 
@@ -173,7 +209,9 @@ contract NFTSwaper is Pausable, Ownable {
             uint256 myToken,
             uint256 wantToken,
             uint256 state,
-            uint256 dueDate
+            uint256 dueDate,
+            uint256 myETH,
+            uint256 wantETH
         )
     {
         Transaction storage transaction = transactions[_transactionId];
@@ -187,7 +225,9 @@ contract NFTSwaper is Pausable, Ownable {
             transaction.myToken,
             transaction.wantToken,
             transaction.state,
-            transaction.dueDate
+            transaction.dueDate,
+            transaction.myETH,
+            transaction.wantETH
         );
     }
 
