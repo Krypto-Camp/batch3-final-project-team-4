@@ -65,18 +65,22 @@ contract NFTSwaper is Pausable, Ownable {
             _receiver != msg.sender,
             "Requestor can't be the same as receiver"
         );
-        require(
-            _myNFT.ownerOf(_myToken) != _wantNFT.ownerOf(_wantToken),
-            "Can't swap NFT to the same owner"
-        );
+        if (address(_wantNFT) != 0x0000000000000000000000000000000000000000) {
+            require(
+                _myNFT.ownerOf(_myToken) != _wantNFT.ownerOf(_wantToken),
+                "Can't swap NFT to the same owner"
+            );
+        }
         require(
             _myNFT.ownerOf(_myToken) == msg.sender,
             "Owner of this token is not you"
         ); // check owner of the token
-        require(
-            _wantNFT.ownerOf(_wantToken) == _receiver,
-            "Owner of wanted token is not receiver"
-        ); // check owner of the wanted token
+        if (_wantToken != 9999999) {
+            require(
+                _wantNFT.ownerOf(_wantToken) == _receiver,
+                "Owner of wanted token is not receiver"
+            );
+        } // check owner of the wanted token
         require(
             address(msg.sender).balance >= _myETH,
             "Not enough ETH in your wallet"
@@ -114,47 +118,86 @@ contract NFTSwaper is Pausable, Ownable {
         uint256 _wantToken
     ) public payable whenNotPaused {
         Transaction storage transaction = transactions[_transactionId]; // another method
-        require(
-            block.timestamp < transaction.dueDate,
-            "Request already expired"
-        ); // dueDate check
-        require(_wantNFT == transaction.wantNFT, "Not requested NFT"); // NFT check
-        require(_wantToken == transaction.wantToken, "Not requested NFT Id"); // NFT Id check
-        require(msg.sender == transaction.receiver, "Not correct receiver"); // receiver check
-        require(
-            transaction.myNFT.ownerOf(transaction.myToken) ==
+        if (
+            address(transaction.wantNFT) ==
+            0x0000000000000000000000000000000000000000 ||
+            transaction.wantToken == 9999999
+        ) {
+            require(
+                block.timestamp < transaction.dueDate,
+                "Request already expired"
+            ); // dueDate check
+            require(msg.sender == transaction.receiver, "Not correct receiver"); // receiver check
+            require(
+                transaction.myNFT.ownerOf(transaction.myToken) ==
+                    transaction.requestor,
+                "Exchanged NFT doesn't exist in requestor wallet"
+            ); // check requestor's exchanged token exist
+            require(
+                transaction.state == uint256(transactionState.Pending),
+                "Already confirmed or Revoked"
+            ); // check request if already confirmed or revoked
+            require(
+                address(transaction.receiver).balance >= transaction.wantETH,
+                "Not enough ETH in your wallet"
+            ); // check ETH amount in receiver's wallet
+
+            onlyOneTransfer(
+                transaction.myNFT,
+                transaction.myToken,
                 transaction.requestor,
-            "Exchanged NFT doesn't exist in requestor wallet"
-        ); // check requestor's exchanged token exist
-        require(
-            transaction.wantNFT.ownerOf(transaction.wantToken) ==
-                transaction.receiver,
-            "Exchanged NFT doesn't exist in receiver wallet"
-        ); // check receiver's exchanged token exist
-        require(
-            transaction.state == uint256(transactionState.Pending),
-            "Already confirmed or Revoked"
-        ); // check request if already confirmed or revoked
-        require(
-            address(msg.sender).balance >= transaction.wantETH,
-            "Not enough ETH in your wallet"
-        ); // check ETH amount in receiver's wallet
+                transaction.receiver
+            );
 
-        /* require(msg.value >= 0.01 ether); // confirmation swapfee */
+            payable(transaction.requestor).transfer(transaction.wantETH);
 
-        Exchange(
-            transaction.myNFT,
-            transaction.wantNFT,
-            transaction.myToken,
-            transaction.wantToken,
-            transaction.requestor,
-            transaction.receiver
-        );
+            transaction.state = uint256(transactionState.Completed);
+        } else {
+            require(
+                block.timestamp < transaction.dueDate,
+                "Request already expired"
+            ); // dueDate check
+            require(_wantNFT == transaction.wantNFT, "Not requested NFT"); // NFT check
+            require(
+                _wantToken == transaction.wantToken,
+                "Not requested NFT Id"
+            ); // NFT Id check
+            require(msg.sender == transaction.receiver, "Not correct receiver"); // receiver check
+            require(
+                transaction.myNFT.ownerOf(transaction.myToken) ==
+                    transaction.requestor,
+                "Exchanged NFT doesn't exist in requestor wallet"
+            ); // check requestor's exchanged token exist
+            require(
+                transaction.wantNFT.ownerOf(transaction.wantToken) ==
+                    transaction.receiver,
+                "Exchanged NFT doesn't exist in receiver wallet"
+            ); // check receiver's exchanged token exist
+            require(
+                transaction.state == uint256(transactionState.Pending),
+                "Already confirmed or Revoked"
+            ); // check request if already confirmed or revoked
+            require(
+                address(msg.sender).balance >= transaction.wantETH,
+                "Not enough ETH in your wallet"
+            ); // check ETH amount in receiver's wallet
 
-        payable(transaction.requestor).transfer(transaction.wantETH); // transfer ETH to requesotr
-        payable(transaction.receiver).transfer(transaction.myETH); // transfer ETH to receiver
+            /* require(msg.value >= 0.01 ether); // confirmation swapfee */
 
-        transaction.state = uint256(transactionState.Completed);
+            Exchange(
+                transaction.myNFT,
+                transaction.wantNFT,
+                transaction.myToken,
+                transaction.wantToken,
+                transaction.requestor,
+                transaction.receiver
+            );
+
+            payable(transaction.requestor).transfer(transaction.wantETH); // transfer ETH to requesotr
+            payable(transaction.receiver).transfer(transaction.myETH); // transfer ETH to receiver
+
+            transaction.state = uint256(transactionState.Completed);
+        }
     }
 
     // Revoke confirmation
@@ -178,8 +221,18 @@ contract NFTSwaper is Pausable, Ownable {
         address receiver
     ) public payable whenNotPaused {
         /* require(msg.value > 0.01 ether); // swapfee */
-        myNFT.transferFrom(requestor, receiver, myToken); //myNFT owner exchange
-        wantNFT.transferFrom(receiver, requestor, wantToken); //wantNFT owner exchange
+        myNFT.transferFrom(requestor, receiver, myToken); // myNFT owner exchange
+        wantNFT.transferFrom(receiver, requestor, wantToken); // wantNFT owner exchange
+    }
+
+    // Excute one NFT transferred function
+    function onlyOneTransfer(
+        IERC721 myNFT,
+        uint256 myToken,
+        address requestor,
+        address receiver
+    ) public payable whenNotPaused {
+        myNFT.transferFrom(requestor, receiver, myToken); // myNFT owner exchange
     }
 
     // Get transactions of users
