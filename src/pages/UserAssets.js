@@ -97,17 +97,17 @@ export default function UserAssets({ fetchedHaveData, setFetchedHaveData, handle
                     damping: 20
                   }}
                 >
-                <StyledCardWarp key={i} image_url={nft?.image_url}> 
-                    <StyledCardTop>
+                <StyledCardWarp className="card-wrap" key={i} image_url={nft?.image_url}> 
+                    <StyledCardTop className="card-top" >
+                        <StyledCardItems>NFT address: {nft.nft_address}</StyledCardItems>
                         <StyledCardItems>{nft.name}</StyledCardItems>
                         <StyledCardItems># {nft.token_id}</StyledCardItems>
                         <StyledCardItems>{nft.schema_name}</StyledCardItems>
                     </StyledCardTop>
                     
-                    <StyledCardItems>NFT address: {nft.nft_address}</StyledCardItems>
+                    <StyledButton onClick={handleLoad}> Confirm Load </StyledButton>
                 </StyledCardWarp>
 
-                <button onClick={handleLoad}> Confirm Load </button>
             </StyledContenWrap>
 
             ))}
@@ -118,20 +118,6 @@ export default function UserAssets({ fetchedHaveData, setFetchedHaveData, handle
     </StyledCardContainer>
   )
 }
-
-const StyledCardRow = styled.div`
-  position: relative;
-`
-const StyledContenWrap = styled(motion.div)`
-  position: absolute;
-  top: -25vh;
-  // transform: translateY(-50%);
- width:60vw;
- height:50vh;
- overflow: hidden;
- background: orange;
- border-radius: 20px;
-`
 
 const StyledCardContainer = styled.div`
   // position: absolute;
@@ -147,24 +133,33 @@ const StyledCardContainer = styled.div`
   cursor: ${({cursorStyle}) => cursorStyle }
 `
 
-const StyledCardImg = styled.img`
-  position: absolute
-  min-width: 600px;
-  max-width: 75vw;
-  height: 50vh;
+const StyledCardRow = styled.div`
+  position: relative;
+`
+
+const StyledContenWrap = styled(motion.div)`
+  position: absolute;
+  top: -25vh;
+  // transform: translateY(-50%);
+  width:50vw;
+  height:50vh;
+
+  
+
+  overflow: hidden;
+  border-radius: 20px;
 `
 
 const StyledCardWarp = styled.div`
-  min-width: 500px;
-  max-width: 75vw;
-  min-height: 500px;
-  max-height: 50vh;
-  padding: 30px;
-  margin: 20px;
+  position:absolute;
+  
+  width: 50vw;
+  height: 50vh;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  align-items: start;
+  align-items: center;
 
   background: #fff2d9;
   border-radius: 20px;
@@ -172,6 +167,8 @@ const StyledCardWarp = styled.div`
   font-family: VT323;
   font-size: 1.2rem;
   background-image: ${({image_url}) => `url( ${image_url} )`} ;
+  background-repeat: no-repeat;
+  background-position: center;
 `
 const StyledCardTop = styled.div`
   width: 100%;
@@ -191,4 +188,24 @@ const StyledCardItems = styled.div`
   border: 1px solid #000;
   border-radius: 30px;
   background: #FFFFFF80;
+`
+
+const StyledButton = styled.button`
+  display: inline-flex;
+  justify-content: center; 
+  align-items: center; 
+  padding: 15px;
+  margin: 10px;
+
+  height: auto;
+  max-height: 35px;
+  background-color: #f6df4c;
+  border-radius: 5px;
+  border-color: transparent;
+  box-shadow: 0px 2px 2px 1px #0F0F0F;
+  cursor: pointer;
+
+  font-family: "VT323";
+  font-size: 1.2rem;
+
 `

@@ -25,8 +25,8 @@ import { motion } from 'framer-motion'
 export default function CreateSwap() {
 
 
-  const [fetchedHaveData, setFetchedHaveData] = useState({ haveTokenId:'8', haveNFTAddress:'0xd728a5ca148db9e7eb7f419389a6b59ba3bb61fa' });
-  const [fetchedWantData, setFetchedWantData] = useState({ wantTokenId:'1', wantNFTAddress:'0x4af4e1fd1184ba6abd1d1c7cf3d7f8afc1d75116', receiver: '0x0F1CD12F75508aa0420dA9cD9798D9cD93627bb3', amount:'' });
+  const [fetchedHaveData, setFetchedHaveData] = useState({ haveTokenId:'', haveNFTAddress:'' });
+  const [fetchedWantData, setFetchedWantData] = useState({ wantTokenId:'', wantNFTAddress:'', receiver: '', amount:'' });
   const [expireIn, setExpireIn] = useState(7);
   const [havePrice, setHavePrice] = useState(0);
   const [wantPrice, setWantPrice] = useState(0);
@@ -163,7 +163,7 @@ console.log(BigNumber.from(`${formatPrice(wantPrice)}`))
               )}
 
               <StyledNFTImg>
-                <img src={haveNFTData?.image_url} alt=""/>
+                <img src={haveNFTData?.image_url} alt=""  />
               </StyledNFTImg>
             </StyledSwapCard>
 
@@ -188,7 +188,7 @@ console.log(BigNumber.from(`${formatPrice(wantPrice)}`))
                   </>
                 )
               }
-              <StyledNFTImg>
+              <StyledNFTImg className='nft-img'>
                 <img src={wantNFTData?.image_url} alt=""/>
               </StyledNFTImg>
 
@@ -268,8 +268,8 @@ const StyledCardWrap = styled.div`
 `
 
 const StyledSwapCard = styled.div`
-  width: 500px;
-  height: 500px;
+  width: 400px;
+  height: 400px;
   margin: 40px;
   padding: 20px;
   display: flex;
@@ -279,7 +279,7 @@ const StyledSwapCard = styled.div`
   gap: 5px;
   border-radius: 5px;
   border-color: transparent;
-  
+  // background: #FFF;
 `
 const StyledSwapCardTexts = styled.div`
   font-size: 1.5rem;
@@ -297,7 +297,7 @@ const StyledSwapCardTexts = styled.div`
 
 `
 const StyledForm = styled.div`
-position: relative;
+  position: relative;
 
   width: 90vw;
   height: 40vh;
@@ -334,10 +334,14 @@ const StyledButton = styled.button`
 `
 
 const StyledNFTImg = styled.div`
-  position: absolute;
-  width: 500px;
-  height: 500px;
+  // position: absolute;
+  width: 400px;
+  height: 400px;
   z-index:-1;
+  overflow: hidden;
+  display: flex;
+
+
 `
 const StyledInfo= styled.div`
   display: inline-grid;
