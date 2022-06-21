@@ -4,10 +4,13 @@ import HaveNFTContent from './HaveNFTContent';
 import WantNFTContent from './WantNFTContent';
 import styled from 'styled-components';
 
-import { ethers } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import { contractABI, contractAddress, erc721ContractABI } from '../configs/contract';
 import { useSigner, useContract, useContractWrite } from 'wagmi'
 import UserAssets from '../pages/UserAssets';
+
+import { motion } from 'framer-motion'
+
 
 /**
  * @TODO click wallet nft load data
@@ -46,26 +49,26 @@ export default function CreateSwap() {
     return days*24*60*60 + Math.floor(Date.now() / 1000)
   }
   const formatPrice = (price) => {
-    return parseInt(price)*1000000000000000000
+    return parseFloat(price) *10**18
   }
   
   const createTransac = async(params) => {
+console.log(BigNumber.from(`${formatPrice(wantPrice)}`))
 
-    // format input params
     let paramArray = [
       params?.receiver , 
-      params?.haveNFTAddress , 
+      params?.nft_address , 
       params?.wantNFTAddress || '0x0000000000000000000000000000000000000000', 
-      params?.haveTokenId || 0, 
+      parseInt(params?.token_id)|| 0, 
       params?.wantTokenId || 9999999, 
       calculateExpiredDate(expireIn), 
       formatPrice(havePrice) , 
-      formatPrice(wantPrice) ]
+      BigNumber.from(`${formatPrice(wantPrice)}`) ]
     
       console.log(paramArray)
     // approve myNFT
-    const nft_contract = new ethers.Contract(params.haveNFTAddress, erc721ContractABI, signer);
-    await nft_contract.approve(contractAddress, params.haveTokenId).catch( e => console.log(e) )
+    const nft_contract = new ethers.Contract(params.nft_address, erc721ContractABI, signer);
+    await nft_contract.approve(contractAddress,  parseInt(params?.token_id) ).catch( e => console.log(e) )
 
     const create_res = await contract?.createTransaction(...paramArray).catch( e => console.log(e) )
     console.log(create_res)
@@ -114,11 +117,21 @@ export default function CreateSwap() {
   }
 
   useEffect(() => {
-    console.log(haveNFTData)
-  }, [haveNFTData?.image_url])
+    console.log(fetchedHaveData)
+  }, [fetchedHaveData])
 
   return (
-    <StyledCreateSwapContainer>
+    <StyledCreateSwapContainer
+      as={motion.div}
+      initial={{ height: 0 }}
+      animate={{ height: "100%" }}
+      exit={{ y: window.innerHeight }}
+      transition={{
+        type:"spring",
+        stiffness: 260,
+        damping: 20
+      }}
+    >
       <StyledElementsWrap>
 
           <StyledCardWrap >
@@ -218,40 +231,9 @@ export default function CreateSwap() {
 
 
 
-const StyledNFTImg = styled.div`
-  position: absolute;
-  width: 500px;
-  height: 500px;
-  z-index:-1;
-`
-const StyledInfo= styled.div`
-  display: inline-grid;
-  grid-template-columns: 400px 400px;
-  height:90%;
-  gap: 100px;
-  
-  font-size: 1.5rem;
-  font-family: "VT323";
-`
-const StyledSubmits= styled.div`
-  display: flex;
-  height:10%;
-  gap: 100px;
 
-`
-const StyledLabel= styled.label`
-  width: 200px;
-  font-size: 1.5rem;
-  font-family: "VT323";
-`
-const StyledInput= styled.input`
-  width: 200px;
-`
-const StyledInfoCol= styled.div`
-  max-width: 400px;
-`
 // ==========================================
-const StyledCreateSwapContainer = styled.div`
+const StyledCreateSwapContainer = styled(motion.div)`
   position: absolute;
   top:0;
   left:0;
@@ -351,3 +333,35 @@ const StyledButton = styled.button`
 
 `
 
+const StyledNFTImg = styled.div`
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  z-index:-1;
+`
+const StyledInfo= styled.div`
+  display: inline-grid;
+  grid-template-columns: 400px 400px;
+  height:90%;
+  gap: 100px;
+  
+  font-size: 1.5rem;
+  font-family: "VT323";
+`
+const StyledSubmits= styled.div`
+  display: flex;
+  height:10%;
+  gap: 100px;
+
+`
+const StyledLabel= styled.label`
+  width: 200px;
+  font-size: 1.5rem;
+  font-family: "VT323";
+`
+const StyledInput= styled.input`
+  width: 200px;
+`
+const StyledInfoCol= styled.div`
+  max-width: 400px;
+`

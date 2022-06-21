@@ -51,7 +51,7 @@ export default function ViewSwaps() {
   }
   const getAllSwaps = async() => {
     let all_promise = []
-    for (let i=6; i<swapsCount; i++) { 
+    for (let i=16; i<swapsCount; i++) { 
       all_promise.push( contract?.getTransactionsData(i) )
     }
     Promise.all(all_promise)
@@ -136,7 +136,7 @@ export default function ViewSwaps() {
     const approve_res = nft_contract.approve(contractAddress, allSwaps[transacId][6].toNumber()  )
   }
   const handleConfirm = e => {
-    // e.preventDefault()
+    e.preventDefault()
     const transacId = e.target.id
     // console.log(transacId)
     // console.log(allSwaps[transacId] )
@@ -145,72 +145,87 @@ export default function ViewSwaps() {
 
 
   return (
-    <StyledAllswapsContainer
-      as={motion.div}
-      initial={{ opacity: 0}}
-      animate={{ opacity: 1, duration: 1000}}
-      exit={{ opacity: 0}}
-    >
-      <h3> All swaps records </h3>
+    // <>
+      // {/* <motion.div 
+      //   style={{ height:"100%", width:"100%", background:"#F00", position:"absolute", zIndex:-1 }}
+      //   initial={{y: "0%" }}
+      //   animate={{ height: "100%" }}
+      //   exit={{ y: "100%" }}
+      //   // transition={{ }}
+      // ></motion.div> */}
+    
+      <StyledAllswapsContainer
+        as={motion.div}
+        initial={{ width: 0 }}
+        animate={{ width: "100%" }}
+        exit={{ x: window.innerWidth }}
+        transition={{
+          type:"spring",
+          stiffness: 260,
+          damping: 20
+        }}
+      > 
 
-      <StyledSearch>
-        <input type="text" id="search-bar" placeholder="Search for NFT address here.." onChange={handleWalletFilter}/>
-        <p> found {filteredAllSwaps?.length} results... </p>
-        <div> or </div>
-        <label > by filter:</label>
-        <select name="filter" onChange={handleFilter}>
-          <option value="expiredDate"> expired date </option>
-          <option value="status"> status </option>
-        </select>
-      </StyledSearch>
+        <h3> All swaps records </h3>
 
-      {filteredAllSwaps?.length ? 
-      filteredAllSwaps.map( (swap, i) => 
-        <StyledCardWrap key={i}>
-          <StyledUpperContent>
-          <div> transcId: {swap.transactionId.toNumber()} </div>
-            <StyledCol>
-                <StyledCardWarp key={i} image_url={swap[0]}> 
-                    <StyledCardTop>
-                        <StyledCardItems> {swap.myNFT}</StyledCardItems>
-                        <StyledCardItems># {swap.myToken.toNumber()}</StyledCardItems>
-                        <StyledCardItems> make-up price:   {ethers.utils.formatEther(BigNumber.from( swap.myETH)) } eth </StyledCardItems>
-                    </StyledCardTop>
-                    
-                    <StyledCardItems>Initiator: {swap.requestor} </StyledCardItems>
-                </StyledCardWarp>
-            </StyledCol>
+        <StyledSearch>
+          <input type="text" id="search-bar" placeholder="Search for NFT address here.." onChange={handleWalletFilter}/>
+          <p> found {filteredAllSwaps?.length} results... </p>
+          <div> or </div>
+          <label > by filter:</label>
+          <select name="filter" onChange={handleFilter}>
+            <option value="expiredDate"> expired date </option>
+            <option value="status"> status </option>
+          </select>
+        </StyledSearch>
+        
+        <StyledContent>
+            { filteredAllSwaps?.length ? 
+            filteredAllSwaps.map( (swap, i) => 
+              <StyledCardWrap key={i}>
+                <StyledUpperContent>
+                <div> transcId: {swap.transactionId.toNumber()} </div>
+                  <StyledCol>
+                      <StyledCardWarp key={i} image_url={swap[0]}> 
+                          <StyledCardTop>
+                              <StyledCardItems> {swap.myNFT}</StyledCardItems>
+                              <StyledCardItems># {swap.myToken.toNumber()}</StyledCardItems>
+                              <StyledCardItems> make-up price:   {ethers.utils.formatEther(BigNumber.from( swap.myETH)) } eth </StyledCardItems>
+                          </StyledCardTop>
+                          
+                          <StyledCardItems>Initiator: {swap.requestor} </StyledCardItems>
+                      </StyledCardWarp>
+                  </StyledCol>
 
-            <StyledCol>
-              <StyledCol>
-                <StyledCardWarp key={i} image_url={swap[1]}> 
-                    <StyledCardTop>
-                        <StyledCardItems> {swap.wantNFT}</StyledCardItems>
-                        <StyledCardItems># {swap.wantToken.toNumber()}</StyledCardItems>
-                        <StyledCardItems> make-up price: {ethers.utils.formatEther(BigNumber.from( swap.wantETH )) } eth </StyledCardItems>
-                    </StyledCardTop>
-                    
-                    <StyledCardItems>Receiver: {swap.receiver} </StyledCardItems>
-                </StyledCardWarp>
-            </StyledCol>
+                  <StyledCol>
+                    <StyledCol>
+                      <StyledCardWarp key={i} image_url={swap[1]}> 
+                          <StyledCardTop>
+                              <StyledCardItems> {swap.wantNFT}</StyledCardItems>
+                              <StyledCardItems># {swap.wantToken.toNumber()}</StyledCardItems>
+                              <StyledCardItems> make-up price: {ethers.utils.formatEther(BigNumber.from( swap.wantETH )) } eth </StyledCardItems>
+                          </StyledCardTop>
+                          
+                          <StyledCardItems>Receiver: {swap.receiver} </StyledCardItems>
+                      </StyledCardWarp>
+                  </StyledCol>
 
-            </StyledCol>
-          </StyledUpperContent>
+                  </StyledCol>
+                </StyledUpperContent>
 
-          <StyledCorner> 
-            <div>expire in { parseExpire(swap.dueDate.toNumber()) } days</div>
-            status: {parseStatus(swap.state.toNumber()) } 
-            { swap.state.toNumber() === 0 && <StyledButton onClick={ handleApprove } id={i}> approve </StyledButton> }
-            { swap.state.toNumber() === 0 && <StyledButton onClick={ handleConfirm } id={i}> confirm </StyledButton> }
-          
-          </StyledCorner>
-          {/* <StyledCorner> expiredDate: {swap[9].toNumber()} </StyledCorner> */}
-        </StyledCardWrap> 
-      ) : 'loading'
-      }
-
-
-    </StyledAllswapsContainer>
+                <StyledCorner> 
+                  <div>expire in { parseExpire(swap.dueDate.toNumber()) } days</div>
+                  status: {parseStatus(swap.state.toNumber()) } 
+                  { swap.state.toNumber() === 0 && <StyledButton onClick={ handleApprove } id={i}> approve </StyledButton> }
+                  { swap.state.toNumber() === 0 && <StyledButton onClick={ handleConfirm } id={i}> confirm </StyledButton> }
+                
+                </StyledCorner>
+                {/* <StyledCorner> expiredDate: {swap[9].toNumber()} </StyledCorner> */}
+              </StyledCardWrap> 
+            ) : 'loading' }
+        </StyledContent>
+      </StyledAllswapsContainer>
+    // </>
   )
 }
 
@@ -262,16 +277,21 @@ const StyledCardItems = styled.div`
 const StyledAllswapsContainer = styled(motion.div)`
   width: auto;
   min-height: 100vh;
-  margin-top: 100px;
+  padding-top: 100px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   // background-color: #00000050;
-
 `
+
 const StyledSearch = styled.div`
+  position: relative;
   width: 400px;
+`
+const StyledContent = styled.div`
+  position: relative;
+  height: 400vh
 `
 
 const StyledCardWrap = styled.div`

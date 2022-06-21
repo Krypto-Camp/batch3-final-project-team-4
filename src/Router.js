@@ -15,7 +15,7 @@ export default function Router() {
   return (
     <>
       <Navbar switchNetReq={switchNetReq} setSwitchNet={setSwitchNet} />
-      <AnimatePresence>
+      <AnimatePresence exitBeforeEnter>
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Homepage switchNetReq={switchNetReq} />} />
           <Route path="/viewswaps" element={<ViewSwaps switchNetReq={switchNetReq} />} />

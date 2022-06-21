@@ -37,7 +37,6 @@ export const parseStatus = (status) => {
       if(!allSwaps?.length) return
       // format allSwaps
       let formattedAllSwaps = allSwaps.reduce((formattedParam, param, i) => {
-        console.log(i)
         formattedParam.push({ nft_addr: param[3], token_id: param[5].toNumber() })
         formattedParam.push({ nft_addr: param[4], token_id: param[6].toNumber() })
         return formattedParam
