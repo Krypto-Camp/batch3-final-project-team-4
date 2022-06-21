@@ -8,6 +8,7 @@ export default function Sidebar({ setMenuOpened, isMenuOpened }) {
     <StyledSidebar isMenuOpened={isMenuOpened}>
         <StyledBarArea isMenuOpened={isMenuOpened}>
             <Link to="viewswaps" onClick={() => setMenuOpened(false)}> Discover All Swaps </Link>
+            <Link to="create-contract" onClick={() => setMenuOpened(false)}> Discover All Swaps </Link>
             <Link to="view-wallet-asset" onClick={() => setMenuOpened(false)}> View your assets </Link>
             <Link to="view-wallet-transaction" onClick={() => setMenuOpened(false)}> View your swaps </Link>
         </StyledBarArea>

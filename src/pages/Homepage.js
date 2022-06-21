@@ -1,32 +1,19 @@
 import { useState } from 'react'
-import CreateSwap from '../components/CreateSwap'
-// import ButtonPrimary from '../components/ButtonPrimary';
+import { Link } from "react-router-dom";
 import styled from 'styled-components';
 
+export default function Homepage() {
 
-export default function Homepage({ switchNetReq }) {
-    const [pressedSwap, setPressedSwap] = useState(false);
-
-    const handleClick = () => {
-      setPressedSwap(true);
-    };
-  
-    
     return (
-      <StyledCreateSwap className='create-swap' pressedSwap={pressedSwap}>
+      <StyledCreateSwap className='create-swap' >
           <StyledElementsWrap >
-            {
-              !pressedSwap && 
-              <>
                 <StyledTexts> all your swaps belong to us </StyledTexts>
                 <StyledTexts> make it as EASY as you can ever imagine </StyledTexts>
                 <StyledTexts className='underline'> with zero swap fees! </StyledTexts>
-              </>
-             }
-            { pressedSwap 
-              ? <CreateSwap switchNetReq={switchNetReq}/>
-              : <StyledButton onClick={handleClick}> SWAP IT NOW </StyledButton>
-            }            
+        
+            <Link to="create-contract" >  
+              <StyledButton > SWAP IT NOW </StyledButton>
+            </Link>                    
           </StyledElementsWrap>
       </StyledCreateSwap>
 
@@ -42,7 +29,7 @@ const StyledCreateSwap = styled.div`
   width: 100%;
   z-index: -1;
   display: flex;
-  justify-content:  ${({pressedSwap}) => pressedSwap ? 'center' : 'start'};
+  justify-content: start;
   align-items: center;
 
   // padding: 15px;

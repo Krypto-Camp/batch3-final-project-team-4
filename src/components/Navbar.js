@@ -1,12 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
 // import ButtonPrimary from './ButtonPrimary';
-import MenuButton from './MenuButton';
+import SwitchPageButton from './SwitchPageButton';
+import { useLocation } from "react-router-dom";
 import styled from 'styled-components';
-import Sidebar from './Sidebar';
 
 import { useAccount, useConnect, useNetwork, chain } from 'wagmi'
-
 
 /**
  * @TODO save account to localhost
@@ -14,6 +13,8 @@ import { useAccount, useConnect, useNetwork, chain } from 'wagmi'
  */
 
 export default function Navbar({ switchNetReq, setSwitchNet }) {
+  const location = useLocation();
+
   const { connect, connectors } = useConnect();
   const { data: currentAccount } = useAccount();
 
@@ -50,17 +51,30 @@ export default function Navbar({ switchNetReq, setSwitchNet }) {
         ? switchNetReq ? ( <StyledWallet> <p> pls switch net</p> </StyledWallet>) : ( <StyledWallet> <p> {currentAccount.address} </p> </StyledWallet>)
         : <StyledButton onClick={connectAccount}> connect wallet </StyledButton>
         }
-        <MenuButton setMenuOpened={setMenuOpened} isMenuOpened={isMenuOpened}> menu </MenuButton>
       </StyledButtonsWrap>
-
-      <Sidebar setMenuOpened={setMenuOpened} isMenuOpened={isMenuOpened}/>
+      
+      {  location.pathname !== '/' &&
+        <StyledButtonWrap>
+          <SwitchPageButton setMenuOpened={setMenuOpened} isMenuOpened={isMenuOpened}> menu </SwitchPageButton>
+        </StyledButtonWrap>
+      }
       
     </StyledNav>
   )
 }
 
+const StyledButtonWrap = styled.h1`
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  padding: 20px;
+  border: 1px solid #FFF;
+  border-radius: 40px;
+  background-color: #FFFFFFA0;
+`
+
 const StyledNav = styled.div`
-  position: sticky;
+  position: fixed;
   top: 0;
   
   display: flex;
@@ -68,8 +82,11 @@ const StyledNav = styled.div`
   align-items: center;
   padding: 15px;
   height: auto;
+  width: 100%;
   font-family: inherit;
   background: transparent;
+
+  z-index:100;
 `
 const StyledTitle = styled.h1`
   // display: none;

@@ -1,4 +1,4 @@
-export const contractAddress = "0x12afe259f3bef8b917a74808dbff5a9e478b72e2"
+export const contractAddress = "0xC8E73A7E6aBa40049016b77eE646764098EA3542"
 export const contractABI = [
   {
     "anonymous": false,
@@ -46,19 +46,6 @@ export const contractABI = [
     "type": "event"
   },
   {
-    "inputs": [],
-    "name": "Balance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "contract IERC721",
@@ -94,26 +81,6 @@ export const contractABI = [
     "name": "Exchange",
     "outputs": [],
     "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "Pay",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "Take",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -169,16 +136,6 @@ export const contractABI = [
       {
         "internalType": "uint256",
         "name": "_dueDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_myETH",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_wantETH",
         "type": "uint256"
       }
     ],
@@ -254,16 +211,6 @@ export const contractABI = [
         "internalType": "uint256",
         "name": "dueDate",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "myETH",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "wantETH",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -286,34 +233,6 @@ export const contractABI = [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IERC721",
-        "name": "myNFT",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "myToken",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "requestor",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "receiver",
-        "type": "address"
-      }
-    ],
-    "name": "onlyOneTransfer",
-    "outputs": [],
-    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -422,16 +341,6 @@ export const contractABI = [
       {
         "internalType": "uint256",
         "name": "dueDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "myETH",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "wantETH",
         "type": "uint256"
       }
     ],
