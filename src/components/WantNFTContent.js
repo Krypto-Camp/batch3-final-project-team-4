@@ -1,16 +1,84 @@
-import React from 'react'
-import AddAssetTab from './AddAssetTab/AddAssetTab'
+import { useRef } from 'react'
+import styled from 'styled-components';
+import { renderNFTData } from '../utils/functions'
+
 
 
 /**
  * @TODO fetch HAVE/WANT TAB data here and pass it to CreateSwapContext
  * need to submit it with form data
  */
-export default function WantNFTContent({ fetchedWantData }) {
+export default function WantNFTContent({ fetchedWantData, setFetchedWantData, handletWantNFT, setModalOpened }) {
+  const addrRef = useRef()
+  const tokenIDRef = useRef()
+  const receiverRef = useRef()
+  const loadNFT = e => {
+    e.preventDefault();
+    if (addrRef.current.value && tokenIDRef.current.value) renderNFTData(addrRef.current.value, tokenIDRef.current.value, handletWantNFT )
+    setFetchedWantData({ wantNFTAddress:addrRef.current.value, wantTokenId:tokenIDRef.current.value, receiver:receiverRef.current.value })
+    setModalOpened(false)
+  }
+
   return (
     <>
-    <div>WantNFTContent</div>
-    <div> {fetchedWantData}... </div>
+    <Styledtitle> Target NFT</Styledtitle>
+    <StyledInputSec onSubmit={loadNFT}>
+      <label> Receiver address </label>
+      <input type="text" ref={receiverRef} defaultValue={fetchedWantData?.receiver}/>
+      <label> NFT address </label>
+      <label> leave a blank if you want it for sale</label>
+      <input type="text" ref={addrRef} defaultValue={fetchedWantData?.wantNFTAddress}/>
+      <label> NFT tokenID </label>
+      <label> leave a blank if you want it for sale</label>
+      <input type="text" ref={tokenIDRef} defaultValue={fetchedWantData?.wantTokenId} />
+      <StyledButton type="submit"> Load NFT</StyledButton>
+    </StyledInputSec>
+
     </>
   )
 }
+
+const Styledtitle= styled.h2`
+  color: #FFF;
+  font-size: 1.6rem;
+`
+const StyledInputSec = styled.form`
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+  border-color: transparent;
+  color: #FFF;
+  font-size: 1.4rem;
+
+  font-family: VT323;
+`
+
+
+const StyledButton = styled.button`
+  display: inline-flex;
+  justify-content: center; 
+  align-items: center; 
+  padding: 15px;
+  margin: 10px;
+
+  height: auto;
+  max-height: 35px;
+  background-color: #ebff12;
+  border-radius: 5px;
+  border-color: orange;
+  box-shadow: 0px 2px 2px 1px #0F0F0F;
+  cursor: pointer;
+
+  font-family: "VT323";
+  font-size: 1.2rem;
+
+  &:hover {
+    background-color: #000;
+    color: #FFF;
+    box-shadow: 0px 2px 2px 1px #0F0F0F30;
+  }
+`
+

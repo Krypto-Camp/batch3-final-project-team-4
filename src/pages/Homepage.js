@@ -1,32 +1,19 @@
 import { useState } from 'react'
-import CreateSwap from '../components/CreateSwap'
-// import ButtonPrimary from '../components/ButtonPrimary';
+import { Link } from "react-router-dom";
 import styled from 'styled-components';
 
-
 export default function Homepage() {
-    const [pressedSwap, setPressedSwap] = useState(false);
 
-    const handleClick = () => {
-      setPressedSwap(true);
-    };
-  
-    
     return (
-      <StyledCreateSwap className='create-swap' pressedSwap={pressedSwap}>
+      <StyledCreateSwap className='create-swap' >
           <StyledElementsWrap >
-            {
-              !pressedSwap && 
-              <>
                 <StyledTexts> all your swaps belong to us </StyledTexts>
                 <StyledTexts> make it as EASY as you can ever imagine </StyledTexts>
                 <StyledTexts className='underline'> with zero swap fees! </StyledTexts>
-              </>
-             }
-            { pressedSwap 
-              ? <CreateSwap/>
-              : <StyledButton onClick={handleClick}> SWAP IT NOW </StyledButton>
-            }            
+        
+            <Link to="create-contract" >  
+              <StyledButton > SWAP IT NOW </StyledButton>
+            </Link>                    
           </StyledElementsWrap>
       </StyledCreateSwap>
 
@@ -42,7 +29,7 @@ const StyledCreateSwap = styled.div`
   width: 100%;
   z-index: -1;
   display: flex;
-  justify-content:  ${({pressedSwap}) => pressedSwap ? 'center' : 'start'};
+  justify-content: start;
   align-items: center;
 
   // padding: 15px;
@@ -77,13 +64,16 @@ const StyledButton = styled.button`
 
   height: auto;
   max-height: 35px;
-  background-color: #f6df4c;
+  background: #ebff12;
   border-radius: 5px;
+  border-color: orange; 
   border-color: transparent;
   box-shadow: 0px 2px 2px 1px #0F0F0F;
   cursor: pointer;
 
   font-family: "VT323";
   font-size: 1.2rem;
-
+  &:hover {
+    background-color: #12f7ff;
+  }
 `

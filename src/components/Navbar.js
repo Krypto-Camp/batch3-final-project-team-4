@@ -1,32 +1,43 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
-import { WalletContext } from '../context/WalletContext'
 // import ButtonPrimary from './ButtonPrimary';
-import MenuButton from './MenuButton';
+import SwitchPageButton from './SwitchPageButton';
+import { useLocation } from "react-router-dom";
 import styled from 'styled-components';
-import Sidebar from './Sidebar';
+
+import { useAccount, useConnect, useNetwork, chain } from 'wagmi'
 
 /**
  * @TODO save account to localhost
  * @TODO display whole address when clicked
  */
 
-export default function Navbar() {
-  const { currentAccount, setCurrentAccount, provider} = useContext(WalletContext);
+export default function Navbar({ switchNetReq, setSwitchNet }) {
+  const location = useLocation();
+
+  const { connect, connectors } = useConnect();
+  const { data: currentAccount } = useAccount();
+
   const [ isMenuOpened, setMenuOpened ] = useState(false);
+  
+  const connectAccount = async() => { 
+      if ( currentAccount ) return;
+      connect(connectors[0]); 
+  }  
+
+  const { activeChain, switchNetwork } = useNetwork({
+      chainId: chain.rinkeby.id,
+  });
+
   useEffect(() => {
-    // if (!currentAccount) return
-    // console.log(currentAccount)
+    if (activeChain && activeChain.id !== chain.rinkeby.id) {
+      setSwitchNet(true)
+      switchNetwork && switchNetwork();
 
-  }, [currentAccount])
-
-  const connectAccount = async() => {
-    if (!window.ethereum) return
-    window.ethereum?.request({ method: 'eth_requestAccounts' })
-    .then(res => setCurrentAccount(res[0]) )
-    .catch( (err) => { if (err.code === 4001) window.alert('Please connect to MetaMask.'); } );
-
-}  
+    } else {
+      setSwitchNet(false)
+    }
+  }, [activeChain, switchNetwork] )
 
 
   return (
@@ -37,20 +48,39 @@ export default function Navbar() {
 
       <StyledButtonsWrap>
         { currentAccount 
-        ? <StyledWallet> <p> {currentAccount} </p> </StyledWallet>
+        ? switchNetReq ? ( <StyledWallet> <p> pls switch net</p> </StyledWallet>) : ( <StyledWallet> <p> {currentAccount.address} </p> </StyledWallet>)
         : <StyledButton onClick={connectAccount}> connect wallet </StyledButton>
         }
-        <MenuButton setMenuOpened={setMenuOpened} isMenuOpened={isMenuOpened}> menu </MenuButton>
       </StyledButtonsWrap>
-
-      <Sidebar setMenuOpened={setMenuOpened} isMenuOpened={isMenuOpened}/>
+      
+      {  location.pathname !== '/' &&
+        <StyledButtonWrap>
+          <SwitchPageButton setMenuOpened={setMenuOpened} isMenuOpened={isMenuOpened}> menu </SwitchPageButton>
+        </StyledButtonWrap>
+      }
       
     </StyledNav>
   )
 }
 
+const StyledButtonWrap = styled.div`
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  padding: 20px;
+  border: 1px solid #FFF;
+  border-radius: 40px;
+  background-color: #FFFFFFA0;
+
+  &:hover {
+    background-color: #12f7ff;
+    transform: scale(1.1);
+    transition: all .2s ease-in-out;
+  }
+`
+
 const StyledNav = styled.div`
-  position: sticky;
+  position: fixed;
   top: 0;
   
   display: flex;
@@ -58,8 +88,11 @@ const StyledNav = styled.div`
   align-items: center;
   padding: 15px;
   height: auto;
+  width: 100%;
   font-family: inherit;
   background: transparent;
+
+  z-index:100;
 `
 const StyledTitle = styled.h1`
   // display: none;

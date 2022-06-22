@@ -8,13 +8,13 @@ export default function ModalAddAsset({ isModalOpened, setModalOpened, children 
     return (
         <>
         <StyledOverlay className='overlay' isModalOpened={isModalOpened}/> 
-            <StyledModal className='modal'>
-                <StyledModalBtn onClick={() => setModalOpened(false) }> X </StyledModalBtn>
-                <div> 
-                    {children}
-                </div>
-                
-            </StyledModal>
+        <StyledModal className='modal'>
+            <StyledModalBtn onClick={() => setModalOpened(false) }> X </StyledModalBtn>
+            <div> 
+                {children}
+            </div>
+            
+        </StyledModal>
         
         </>
         
@@ -27,13 +27,13 @@ const StyledModal = styled.div`
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
-    width: 600px;
-    height: 400px;
+    width:70vw;
+    height:60vh;
     
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #dfad9b;
+    background: #4b0affA0;
 `
 const StyledModalBtn = styled.button`
     position: absolute;
@@ -44,6 +44,11 @@ const StyledModalBtn = styled.button`
     height: 20px;
     border: none;
     background: #FFF;
+    z-index: 99;
+
+    &:hover {
+        background-color: #12f7ff;
+      }
 `
 
 

@@ -12,10 +12,13 @@
 }
 
 body {
-  overflow: hidden;
+  overflow-x: hidden;
+
 }
 
-
+body::-webkit-scrollbar {
+  width: 0px;
+}
 
 .underline {
   text-decoration: underline;
@@ -37,14 +40,14 @@ input {
   color: #000;
   padding: 14px 20px;
   margin: 8px 0;
-  border: none;
+  border: 1px solid #00000050;
   border-radius: 4px;
   cursor: pointer;
 }
 
 
 input:hover {
-  background-color: #f6df4c;
+  background-color: #ebff12;
 }
 
 .checkbox {
