@@ -254,7 +254,7 @@ export default function ViewSwaps() {
                     </StyledButton> }
                   { swap.state.toNumber() === 0 && 
                     <StyledButton onClick={ handleConfirm } id={i}> 
-                      { isConfirmedLoading ? 'processing...': ConfirmedData ? 'succeeded!' : 'approve'}
+                      { isConfirmedLoading ? 'processing...': ConfirmedData ? 'succeeded!' : 'confirm'}
                     </StyledButton> }
                 
                 </StyledCorner>
