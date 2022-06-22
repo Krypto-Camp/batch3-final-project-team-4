@@ -53,8 +53,6 @@ export default function CreateSwap() {
   }
   
   const createTransac = async(params) => {
-console.log(BigNumber.from(`${formatPrice(wantPrice)}`))
-
     let paramArray = [
       params?.receiver , 
       params?.nft_address , 
@@ -322,15 +320,18 @@ const StyledButton = styled.button`
 
   height: auto;
   max-height: 35px;
-  background-color: #f6df4c;
+  background-color: #ebff12;
   border-radius: 5px;
-  border-color: transparent;
+  border-color: orange;
   box-shadow: 0px 2px 2px 1px #0F0F0F;
   cursor: pointer;
 
   font-family: "VT323";
   font-size: 1.2rem;
 
+  &:hover {
+    background-color: #12f7ff;
+  }
 `
 
 const StyledNFTImg = styled.div`

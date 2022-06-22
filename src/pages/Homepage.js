@@ -64,13 +64,16 @@ const StyledButton = styled.button`
 
   height: auto;
   max-height: 35px;
-  background-color: #f6df4c;
+  background: #ebff12;
   border-radius: 5px;
+  border-color: orange; 
   border-color: transparent;
   box-shadow: 0px 2px 2px 1px #0F0F0F;
   cursor: pointer;
 
   font-family: "VT323";
   font-size: 1.2rem;
-
+  &:hover {
+    background-color: #12f7ff;
+  }
 `

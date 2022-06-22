@@ -3,8 +3,8 @@ import styled from 'styled-components';
 import { parseStatus, parseExpire, getTokensMetadata } from '../utils/functions';
 
 import { BigNumber, ethers } from 'ethers';
-import { contractABI, contractAddress, erc721ContractABI } from '../configs/contract';
-import { useSigner, useContract, useAccount } from 'wagmi'
+import { contractABI, contractAddress, erc721ContractABI  } from '../configs/contract';
+import { useSigner, useContract, useAccount, useContractWrite, useWaitForTransaction } from 'wagmi'
 
 import { motion } from 'framer-motion'
 
@@ -32,7 +32,8 @@ export default function ViewSwaps() {
   const [ allSwapsImg, setAllSwapsImg ] = useState([]) // do not mutate this 
 
   const [ filteredAllSwaps, setFilteredAllSwaps ] = useState([]) // for view. the order changes here.
-  const [ confirmSwapRes, setConfirmSwapRes ] = useState()
+  const [ confirmedRes, setConfirmRes ] = useState()
+  const [ approveNFTres, setApproveNFTres ] = useState()
 
   const { data: wallet } = useAccount() 
   const { data: signer } = useSigner()
@@ -41,6 +42,23 @@ export default function ViewSwaps() {
     contractInterface: contractABI,
     signerOrProvider: signer
   })
+
+  //** BUG: CONNECTORS NOT FOUND */
+  // const [ confirmedContract, setConfirmedContract ] = useState()
+  // const { write:confirmWrite } = useContractWrite(
+  //   {
+  //     addressOrName: contractAddress,
+  //     contractInterface: contractABI,
+  //   },
+  //   'confirmTransaction',
+  //   {
+  //     overrides: {
+  //       args: [confirmedContract?.id, confirmedContract?.wantNFT, confirmedContract?.wantNFTtokenID ],
+  //       from: wallet.address,
+  //       value: ethers.utils.parseEther('0.01'),
+  //     },
+  //   },
+  // )
 
 /****************************************
  * FETCHING DATA
@@ -69,7 +87,7 @@ export default function ViewSwaps() {
     }, [swapsCount])
     
     useEffect(() => {
-      // console.log("allSwaps useEffect: ", allSwaps)
+      console.log("allSwaps useEffect: ", allSwaps)
       getTokensMetadata(allSwaps, setAllSwapsImg)
     }, [allSwaps])
 
@@ -121,29 +139,44 @@ export default function ViewSwaps() {
    * SUBMIT DATA
    * @TODO CHECK APPROVED BEFORE CONFIRM
    */
-  const confirmSwap = async(id, wantNFT, wantNFTtokenID ) => {
-    // sign contract
-    const confirm_res = await contract?.confirmTransaction(id, wantNFT, wantNFTtokenID )
-    setConfirmSwapRes(confirm_res)
-  }
 
-  const handleApprove = (e ) => {
+  const handleApprove = async(e) => {
     e.preventDefault()
     const transacId = e.target.id
-    // console.log(allSwaps[transacId] )
     // approve nft in wallet first 
-    const nft_contract = new ethers.Contract(allSwaps[transacId][4], erc721ContractABI, signer);
-    const approve_res = nft_contract.approve(contractAddress, allSwaps[transacId][6].toNumber()  )
+    const nft_contract = new ethers.Contract(allSwaps[transacId].wantNFT, erc721ContractABI, signer);
+    const approve_res = nft_contract.approve(contractAddress, allSwaps[transacId].wantToken.toNumber()  )
+    setApproveNFTres(approve_res)
   }
+  const { data: approvedData, isLoading: isApprovedLoading } = useWaitForTransaction({
+    hash: approveNFTres?.hash,
+  })
+
   const handleConfirm = e => {
     e.preventDefault()
     const transacId = e.target.id
-    // console.log(transacId)
-    // console.log(allSwaps[transacId] )
-    confirmSwap(allSwaps[transacId][0], allSwaps[transacId][4], allSwaps[transacId][6].toNumber()  ).catch( e => console.log(e) )
+    confirmSwap(allSwaps[transacId].transactionId, allSwaps[transacId].wantNFT, allSwaps[transacId].wantToken.toNumber()  ).catch( e => console.log(e) )
   }
 
+  const confirmSwap = async( id, wantNFT, wantNFTtokenID ) => {
+    // setConfirmedContract({id:id, wantNFT:wantNFT, wantNFTtokenID:wantNFTtokenID})
+    // sign contract
+    const confirm_res = await contract?.confirmTransaction(id, wantNFT, wantNFTtokenID )
+    setConfirmRes(confirm_res)
 
+  }
+  const { data: ConfirmedData, isLoading: isConfirmedLoading } = useWaitForTransaction({
+    hash: confirmedRes?.hash,
+  })
+
+  // useEffect(() => {
+  //   (async() => {
+  //     const confirm_res = await confirmWrite()
+  //     setConfirmRes(confirm_res)
+  //   })()
+    
+  // }, [confirmedContract?.id, confirmedContract?.wantNFT, confirmedContract?.wantNFTtokenID])
+  
   return (
     // <>
       // {/* <motion.div 
@@ -166,9 +199,8 @@ export default function ViewSwaps() {
         }}
       > 
 
-        <h3> All swaps records </h3>
-
-        <StyledSearch>
+        <StyledSearch className='header'>
+          <h3> All swaps records </h3>
           <input type="text" id="search-bar" placeholder="Search for NFT address here.." onChange={handleWalletFilter}/>
           <p> found {filteredAllSwaps?.length} results... </p>
           <div> or </div>
@@ -186,7 +218,7 @@ export default function ViewSwaps() {
                 <StyledUpperContent>
                 <div> transcId: {swap.transactionId.toNumber()} </div>
                   <StyledCol>
-                      <StyledCardWarp key={i} image_url={swap[0]}> 
+                      <StyledCards key={i} image_url={swap[0]}> 
                           <StyledCardTop>
                               <StyledCardItems> {swap.myNFT}</StyledCardItems>
                               <StyledCardItems># {swap.myToken.toNumber()}</StyledCardItems>
@@ -194,12 +226,12 @@ export default function ViewSwaps() {
                           </StyledCardTop>
                           
                           <StyledCardItems>Initiator: {swap.requestor} </StyledCardItems>
-                      </StyledCardWarp>
+                      </StyledCards>
                   </StyledCol>
 
                   <StyledCol>
                     <StyledCol>
-                      <StyledCardWarp key={i} image_url={swap[1]}> 
+                      <StyledCards key={i} image_url={swap[1]}> 
                           <StyledCardTop>
                               <StyledCardItems> {swap.wantNFT}</StyledCardItems>
                               <StyledCardItems># {swap.wantToken.toNumber()}</StyledCardItems>
@@ -207,7 +239,7 @@ export default function ViewSwaps() {
                           </StyledCardTop>
                           
                           <StyledCardItems>Receiver: {swap.receiver} </StyledCardItems>
-                      </StyledCardWarp>
+                      </StyledCards>
                   </StyledCol>
 
                   </StyledCol>
@@ -216,8 +248,14 @@ export default function ViewSwaps() {
                 <StyledCorner> 
                   <div>expire in { parseExpire(swap.dueDate.toNumber()) } days</div>
                   status: {parseStatus(swap.state.toNumber()) } 
-                  { swap.state.toNumber() === 0 && <StyledButton onClick={ handleApprove } id={i}> approve </StyledButton> }
-                  { swap.state.toNumber() === 0 && <StyledButton onClick={ handleConfirm } id={i}> confirm </StyledButton> }
+                  { swap.state.toNumber() === 0 && 
+                    <StyledButton onClick={ handleApprove } id={i}> 
+                      { isApprovedLoading ? 'processing...': approvedData ? 'succeeded!' : 'approve'} 
+                    </StyledButton> }
+                  { swap.state.toNumber() === 0 && 
+                    <StyledButton onClick={ handleConfirm } id={i}> 
+                      { isConfirmedLoading ? 'processing...': ConfirmedData ? 'succeeded!' : 'approve'}
+                    </StyledButton> }
                 
                 </StyledCorner>
                 {/* <StyledCorner> expiredDate: {swap[9].toNumber()} </StyledCorner> */}
@@ -232,7 +270,61 @@ export default function ViewSwaps() {
 
 
   
-const StyledCardWarp = styled.div`
+
+const StyledAllswapsContainer = styled(motion.div)`
+  width: auto;
+  min-height: 100vh;
+  padding-top: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  
+  background: rgb(223,173,155);
+  background: linear-gradient(153deg, rgba(223,173,155,0.9612219887955182) 9%, rgba(166,196,213,1) 34%, rgba(81,78,158,1) 84%, rgba(7,5,43,1) 100%);
+`
+const StyledSearch = styled.div`
+  position: relative;
+  width: 400px;
+`
+const StyledContent = styled.div`
+  position: relative;
+  // height: 400vh
+  padding-top: 120px;
+  padding-bottom: 200px;
+`
+// =================
+const StyledCardWrap = styled.div`
+  width: auto;
+  height: auto;
+  padding: 20px;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background: #dedbc850;
+  border-radius: 20px;
+
+  font-family: VT323;
+  font-size:1.2rem;
+
+`
+const StyledUpperContent = styled.div`
+  display: flex; 
+  justify-content: space-between;
+`
+
+const StyledCol = styled.div`
+  width:500px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+`
+const StyledCards = styled.div`
 // min-width: 500px;
 // min-height: 500px;
   width: 400px;
@@ -244,7 +336,7 @@ const StyledCardWarp = styled.div`
   justify-content: space-between;
   align-items: start;
 
-  background: #fff2d9;
+  background: #ebff12;
   border-radius: 20px;
 
   font-family: VT323;
@@ -272,64 +364,8 @@ const StyledCardItems = styled.div`
   border-radius: 30px;
   background: #FFFFFF80;
 `
-
-// =================
-const StyledAllswapsContainer = styled(motion.div)`
-  width: auto;
-  min-height: 100vh;
-  padding-top: 100px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  // background-color: #00000050;
-`
-
-const StyledSearch = styled.div`
-  position: relative;
-  width: 400px;
-`
-const StyledContent = styled.div`
-  position: relative;
-  height: 400vh
-`
-
-const StyledCardWrap = styled.div`
-  width: auto;
-  height: auto;
-  padding: 20px;
-  margin: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  background: #fff2d9;
-  border-radius: 20px;
-
-  font-family: VT323;
-  font-size:1.2rem;
-
-`
-
-const StyledUpperContent = styled.div`
-  display: flex;
-  
-  justify-content: space-between;
-
-`
-
-const StyledCol = styled.div`
-  width:500px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: start;
-`
 const StyledCorner = styled.div`
   width:100%;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -345,13 +381,16 @@ const StyledButton = styled.button`
 
   height: auto;
   max-height: 35px;
-  background-color: #f6df4c;
+  background-color: #ebff12;
   border-radius: 5px;
-  border-color: transparent;
+  border-color: orange;
   box-shadow: 0px 2px 2px 1px #0F0F0F;
   cursor: pointer;
 
   font-family: "VT323";
   font-size: 1.2rem;
 
+  &:hover {
+    background-color: #12f7ff;
+  }
 `

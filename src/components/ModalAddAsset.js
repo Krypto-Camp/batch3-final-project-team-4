@@ -33,7 +33,7 @@ const StyledModal = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #FFF;
+    background: #4b0affA0;
 `
 const StyledModalBtn = styled.button`
     position: absolute;
@@ -45,6 +45,10 @@ const StyledModalBtn = styled.button`
     border: none;
     background: #FFF;
     z-index: 99;
+
+    &:hover {
+        background-color: #12f7ff;
+      }
 `
 
 

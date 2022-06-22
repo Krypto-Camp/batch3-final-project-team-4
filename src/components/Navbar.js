@@ -63,7 +63,7 @@ export default function Navbar({ switchNetReq, setSwitchNet }) {
   )
 }
 
-const StyledButtonWrap = styled.h1`
+const StyledButtonWrap = styled.div`
   position: fixed;
   right: 20px;
   bottom: 20px;
@@ -71,6 +71,12 @@ const StyledButtonWrap = styled.h1`
   border: 1px solid #FFF;
   border-radius: 40px;
   background-color: #FFFFFFA0;
+
+  &:hover {
+    background-color: #12f7ff;
+    transform: scale(1.1);
+    transition: all .2s ease-in-out;
+  }
 `
 
 const StyledNav = styled.div`

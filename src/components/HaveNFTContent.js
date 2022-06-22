@@ -20,18 +20,23 @@ export default function HaveNFTContent({  fetchedHaveData, setFetchedHaveData, h
 
   return (
         <>
-          <div>Load your NFT.</div>
+          <Styledtitle>Load your NFT.</Styledtitle>
           <StyledInputSec onSubmit={loadNFT}>
             <label> NFT address </label>
             <input type="text" ref={addrRef} defaultValue={fetchedHaveData?.haveNFTAddress}/>
             <label> NFT tokenID </label>
             <input type="text" ref={tokenIDRef} defaultValue={fetchedHaveData?.haveTokenId}/>
-            <StyledButton type="submit"> Confirm Load </StyledButton>
+            <StyledButton type="submit"> Load NFT </StyledButton>
           </StyledInputSec>
         </>
       
   )
 }
+
+const Styledtitle= styled.h2`
+  color: #FFF;
+  font-size: 1.6rem;
+`
 
 const StyledInputSec = styled.form`
   padding: 20px;
@@ -41,7 +46,8 @@ const StyledInputSec = styled.form`
   align-items: center;
   border-radius: 5px;
   border-color: transparent;
-
+  color: #FFF;
+  font-size: 1.4rem;
   font-family: VT323;
 `
 
@@ -54,14 +60,19 @@ const StyledButton = styled.button`
 
   height: auto;
   max-height: 35px;
-  background-color: #f6df4c;
+  background-color: #ebff12;
   border-radius: 5px;
-  border-color: transparent;
+  border-color: orange;
   box-shadow: 0px 2px 2px 1px #0F0F0F;
   cursor: pointer;
 
   font-family: "VT323";
   font-size: 1.2rem;
 
+  &:hover {
+    background-color: #000;
+    color: #FFF;
+    box-shadow: 0px 2px 2px 1px #0F0F0F30;
+  }
 `
 

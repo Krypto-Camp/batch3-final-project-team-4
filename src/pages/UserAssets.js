@@ -161,7 +161,7 @@ const StyledCardWarp = styled.div`
   justify-content: space-between;
   align-items: center;
 
-  background: #fff2d9;
+
   border-radius: 20px;
 
   font-family: VT323;
@@ -199,13 +199,15 @@ const StyledButton = styled.button`
 
   height: auto;
   max-height: 35px;
-  background-color: #f6df4c;
+  background-color: #ebff12;
   border-radius: 5px;
-  border-color: transparent;
+  border-color: orange;
   box-shadow: 0px 2px 2px 1px #0F0F0F;
   cursor: pointer;
 
   font-family: "VT323";
   font-size: 1.2rem;
-
+  &:hover {
+    background-color: #12f7ff;
+  }
 `

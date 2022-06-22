@@ -21,7 +21,7 @@ export default function WantNFTContent({ fetchedWantData, setFetchedWantData, ha
 
   return (
     <>
-    <div> Target NFT</div>
+    <Styledtitle> Target NFT</Styledtitle>
     <StyledInputSec onSubmit={loadNFT}>
       <label> Receiver address </label>
       <input type="text" ref={receiverRef} defaultValue={fetchedWantData?.receiver}/>
@@ -31,13 +31,17 @@ export default function WantNFTContent({ fetchedWantData, setFetchedWantData, ha
       <label> NFT tokenID </label>
       <label> leave a blank if you want it for sale</label>
       <input type="text" ref={tokenIDRef} defaultValue={fetchedWantData?.wantTokenId} />
-      <button type="submit"> Load </button>
+      <StyledButton type="submit"> Load NFT</StyledButton>
     </StyledInputSec>
 
     </>
   )
 }
 
+const Styledtitle= styled.h2`
+  color: #FFF;
+  font-size: 1.6rem;
+`
 const StyledInputSec = styled.form`
   padding: 20px;
   display: flex;
@@ -46,6 +50,35 @@ const StyledInputSec = styled.form`
   align-items: center;
   border-radius: 5px;
   border-color: transparent;
+  color: #FFF;
+  font-size: 1.4rem;
 
   font-family: VT323;
 `
+
+
+const StyledButton = styled.button`
+  display: inline-flex;
+  justify-content: center; 
+  align-items: center; 
+  padding: 15px;
+  margin: 10px;
+
+  height: auto;
+  max-height: 35px;
+  background-color: #ebff12;
+  border-radius: 5px;
+  border-color: orange;
+  box-shadow: 0px 2px 2px 1px #0F0F0F;
+  cursor: pointer;
+
+  font-family: "VT323";
+  font-size: 1.2rem;
+
+  &:hover {
+    background-color: #000;
+    color: #FFF;
+    box-shadow: 0px 2px 2px 1px #0F0F0F30;
+  }
+`
+
