@@ -294,7 +294,7 @@ contract NFTSwaper is Pausable, Ownable {
         Transaction storage transaction = transactions[_transactionId];
         require(
             transaction.state == uint256(transactionState.Pending),
-            "This transactio was already revoked or Completed"
+            "This transaction was already revoked or Completed"
         );
         require(
             msg.sender == transaction.requestor,
