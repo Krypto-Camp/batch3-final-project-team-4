@@ -293,6 +293,10 @@ contract NFTSwaper is Pausable, Ownable {
     function revokeTransaction(uint256 _transactionId) public whenNotPaused {
         Transaction storage transaction = transactions[_transactionId];
         require(
+            transaction.state == uint256(transactionState.Pending),
+            "This transactio was already revoked or Completed"
+        );
+        require(
             msg.sender == transaction.requestor,
             "Need requestor to revoke"
         );
@@ -308,7 +312,7 @@ contract NFTSwaper is Pausable, Ownable {
         uint256 wantToken,
         address requestor,
         address receiver
-    ) public payable whenNotPaused {
+    ) private whenNotPaused {
         /* require(msg.value > 0.01 ether); // swapfee */
         myNFT.transferFrom(requestor, receiver, myToken); // myNFT owner exchange
         wantNFT.transferFrom(receiver, requestor, wantToken); // wantNFT owner exchange
@@ -320,7 +324,7 @@ contract NFTSwaper is Pausable, Ownable {
         uint256 myToken,
         address requestor,
         address receiver
-    ) public payable whenNotPaused {
+    ) private whenNotPaused {
         myNFT.transferFrom(requestor, receiver, myToken); // myNFT owner exchange
     }
 
